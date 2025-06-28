@@ -141,12 +141,10 @@ def check_exit_conditions():
 
             if change >= 1.5 or change <= -1.0:
                 close_side = 'SELL' if side == 'BUY' else 'BUY'
-                client.create_test_order(  # можно заменить на реальный order_limit_xxx
-                    symbol=symbol,
-                    side=Client.SIDE_BUY if close_side == 'BUY' else Client.SIDE_SELL,
-                    type=Client.ORDER_TYPE_MARKET,
-                    quantity=qty
-                )
+                if close_side == 'BUY':
+                    client.order_market_buy(symbol=symbol, quantity=qty)
+                else:
+                    client.order_market_sell(symbol=symbol, quantity=qty)
 
                 profit_usdt = round(TRADE_AMOUNT * change / 100, 2)
                 result = 'win' if profit_usdt > 0 else 'loss'
@@ -170,7 +168,7 @@ def check_exit_conditions():
 
 def send_telegram_message(message):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-    payload = {'chat_id': TELEGRAM_CHAT_ID, 'text': message}
+    payload = {'chat_id': TELEGRAM_CHAT_ID, 'text': message, 'parse_mode': 'Markdown'}
     try:
         requests.post(url, data=payload)
     except Exception as e:
