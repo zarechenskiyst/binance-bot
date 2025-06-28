@@ -229,6 +229,6 @@ while True:
         send_statistics()
         next_report_time = datetime.now() + timedelta(hours=3)
 
-  check_exit_conditions()
+    check_exit_conditions()
     
     time.sleep(60 * 5)  # ждем 5 минут до следующей проверки
