@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import time
 import requests
+import os
 from datetime import datetime, timedelta
 
 # Telegram конфигурация
