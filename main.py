@@ -20,7 +20,7 @@ TRADE_AMOUNT = 10    # Сумма сделки в USDT
 
 # 🔑 API ключи с Binance Testnet
 API_KEY = os.getenv("API_KEY")
-API_SECRET = 'os.getenv("API_SECRET")
+API_SECRET = os.getenv("API_SECRET")
 
 client = Client(API_KEY, API_SECRET)
 client.API_URL = 'https://testnet.binance.vision/api'
