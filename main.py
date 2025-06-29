@@ -100,6 +100,8 @@ def execute_trade(symbol, signal):
         price = float(ticker['price'])
         qty = get_trade_quantity(symbol, TRADE_AMOUNT, price)
 
+        print(f"[DEBUG] qty: {qty} | type: {type(qty)}")
+
         if signal == 'BUY':
             client.order_market_buy(symbol=symbol, quantity=qty)
         elif signal == 'SELL':
