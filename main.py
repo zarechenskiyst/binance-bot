@@ -16,6 +16,8 @@ trade_log = []
 # Время следующей отправки отчета
 next_report_time = datetime.now() + timedelta(hours=3)
 
+symbol_precision_cache = {}
+
 open_positions = {}  # Пример: {'BTCUSDT': {'side': 'BUY', 'entry_price': 30000.0, 'qty': 0.00033}}
 TRADE_AMOUNT = 10    # Сумма сделки в USDT
 
@@ -96,12 +98,13 @@ def execute_trade(symbol, signal):
     try:
         ticker = client.get_symbol_ticker(symbol=symbol)
         price = float(ticker['price'])
-        qty = round(TRADE_AMOUNT / price, 5)
+        qty = TRADE_AMOUNT / price
+        qty = round_step_size(symbol, qty)
 
         if signal == 'BUY':
-            client.order_limit_buy(symbol=symbol, quantity=qty, price=str(round(price, 2)))
+            client.order_market_buy(symbol=symbol, quantity=qty)
         elif signal == 'SELL':
-            client.order_limit_sell(symbol=symbol, quantity=qty, price=str(round(price, 2)))
+            client.order_market_sell(symbol=symbol, quantity=qty)
 
         print(f"✅ {signal} ордер отправлен для {symbol} по {price}")
 
@@ -197,6 +200,21 @@ def send_statistics():
     )
     send_telegram_message(message)
 
+def round_step_size(symbol, qty):
+    if symbol in symbol_precision_cache:
+        precision = symbol_precision_cache[symbol]
+    else:
+        info = client.get_symbol_info(symbol)
+        for f in info['filters']:
+            if f['filterType'] == 'LOT_SIZE':
+                step = float(f['stepSize'])
+                precision = int(round(-np.log10(step)))
+                symbol_precision_cache[symbol] = precision
+                break
+        else:
+            precision = 5  # запасной вариант
+
+    return round(qty, precision)
 
 # 🧠 Главный цикл
 while True:
