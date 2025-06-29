@@ -140,7 +140,9 @@ def execute_trade(symbol, signal):
         })
 
     except Exception as e:
-        print(f"❌ Ошибка при торговле {symbol}: {e}")
+        error_message = f"❌ Ошибка при торговле {symbol}: {e}"
+        print(f"{error_message}")
+        send_telegram_error(error_message)
 
 def get_trade_quantity(symbol, trade_amount, price):
     info = client.get_symbol_info(symbol)
@@ -197,7 +199,9 @@ def check_exit_conditions():
                 symbols_to_close.append(symbol)
 
         except Exception as e:
-            print(f"❌ Ошибка при закрытии {symbol}: {e}")
+            error_message = f"❌ Ошибка при закрытии {symbol}: {e}"
+            print(f"{error_message}")
+            send_telegram_error(error_message)
 
     for s in symbols_to_close:
         open_positions.pop(s)
@@ -208,7 +212,19 @@ def send_telegram_message(message):
     try:
         requests.post(url, data=payload)
     except Exception as e:
-        print(f"❌ Ошибка при отправке Telegram: {e}")
+       error_message = f"❌ Ошибка при отправке Telegram: {e}"
+       print(f"{error_message}")
+       send_telegram_error(error_message)
+        
+
+def send_telegram_error(message):
+    full_message = f"❌ Ошибка:\n{message}"
+    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+    payload = {'chat_id': TELEGRAM_CHAT_ID, 'text': full_message}
+    try:
+        requests.post(url, data=payload)
+    except Exception as e:
+        print(f"[Telegram Error Fail] {e}")
 
 def send_statistics():
     if not trade_log:
@@ -274,7 +290,9 @@ while True:
             print(f"  MACD + EMA: {macd}")
 
         except Exception as e:
-            print(f"⚠️ Ошибка при обработке {symbol}: {e}")
+            error_message = f"⚠️ Ошибка при обработке {symbol}: {e}"
+            print(f"{error_message}")
+            send_telegram_error(error_message)
 
   # Проверка времени отчета
     if datetime.now() >= next_report_time:
