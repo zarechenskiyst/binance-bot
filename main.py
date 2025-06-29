@@ -184,12 +184,14 @@ def send_statistics():
     losses = sum(1 for t in trade_log if t['result'] == 'loss')
     total_amount = sum(t['amount'] for t in trade_log)
     total_profit = sum(t.get('profit', 0) for t in trade_log)
+    open_trades = sum(1 for tin trade_log if t['result'] is None)
 
     message = (
         "📈 *Статистика за 3 часа*\n\n"
         f"Всего сделок: {total}\n"
         f"✅ Прибыльных: {wins}\n"
         f"❌ Убыточных: {losses}\n"
+        f"🟡 Открытых: {open_trades}\n"
         f"💸 Поставлено: ${total_amount:.2f}\n"
         f"💰 Прибыль: ${total_profit:.2f}"
     )
