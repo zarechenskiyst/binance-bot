@@ -171,7 +171,7 @@ def check_exit_conditions():
             if side == 'SELL':
                 change = -change  # для коротких сделок переворачиваем знак
 
-            elapsed_minutes = (datetime.now() - pos['time'].total_seconds() / 60
+            elapsed_minutes = (datetime.now() - pos['time']).total_seconds() / 60
             max_minutes = symbol_timeouts.get(symbol, 60) # Дефолт 60 мин
             
             if change >= 1.5 or change <= -1.0 or elapsed_minutes >= max_minutes:
