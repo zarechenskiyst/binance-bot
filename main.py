@@ -98,9 +98,7 @@ def execute_trade(symbol, signal):
     try:
         ticker = client.get_symbol_ticker(symbol=symbol)
         price = float(ticker['price'])
-        qty = TRADE_AMOUNT / price
-        qty = round_step_size(symbol, qty)
-        qty = float(qty)
+        qty = get_trade_quantity(symbol, TRADE_AMOUNT, price)
 
         if signal == 'BUY':
             client.order_market_buy(symbol=symbol, quantity=qty)
@@ -129,6 +127,21 @@ def execute_trade(symbol, signal):
     except Exception as e:
         print(f"❌ Ошибка при торговле {symbol}: {e}")
 
+def get_trade_quantity(symbol, trade_amount, price):
+    info = client.get_symbol_info(symbol)
+    step = 0.00001  # fallback
+
+    for f in info['filters']:
+        if f['filterType'] == 'LOT_SIZE':
+            step = float(f['stepSize'])
+            break
+
+    raw_qty = trade_amount / price
+    precision = int(round(-np.log10(step)))
+    adjusted_qty = raw_qty - (raw_qty % step)
+    qty = round(adjusted_qty, precision)
+    return float(qty)
+
 def check_exit_conditions():
     symbols_to_close = []
 
@@ -138,8 +151,6 @@ def check_exit_conditions():
             entry = pos['entry_price']
             side = pos['side']
             qty = pos['qty']
-
-            print(f"[DEBUG] qty: {qty} | type: {type(qty)}")
             
             change = (current_price - entry) / entry * 100
             if side == 'SELL':
