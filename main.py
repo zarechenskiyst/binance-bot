@@ -33,6 +33,14 @@ symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'AVAXUSDT', 'PEPEUSDT']
 interval = Client.KLINE_INTERVAL_5MINUTE
 lookback = 100
 
+symbol_timeouts = {
+    'BTCUSDT': 60,
+    'ETHUSDT': 60,
+    'SOLUSDT': 45,
+    'AVAXUSDT': 45,
+    'PEPEUSDT': 30
+}
+
 def get_klines(symbol):
     klines = client.get_klines(symbol=symbol, interval=interval, limit=lookback)
     df = pd.DataFrame(klines, columns=[
@@ -163,7 +171,10 @@ def check_exit_conditions():
             if side == 'SELL':
                 change = -change  # для коротких сделок переворачиваем знак
 
-            if change >= 1.5 or change <= -1.0:
+            elapsed_minutes = (datetime.now() - pos['time'].total_seconds() / 60
+            max_minutes = symbol_timeouts.get(symbol, 60) # Дефолт 60 мин
+            
+            if change >= 1.5 or change <= -1.0 or elapsed_minutes >= max_minutes:
                 close_side = 'SELL' if side == 'BUY' else 'BUY'
                 if close_side == 'BUY':
                     client.order_market_buy(symbol=symbol, quantity=qty)
