@@ -99,13 +99,14 @@ def execute_trade(symbol, signal):
         ticker = client.get_symbol_ticker(symbol=symbol)
         price = float(ticker['price'])
         qty = get_trade_quantity(symbol, TRADE_AMOUNT, price)
+        qty_str="{0:.8}".format(qty).rstrip('0').rstrip('.')
 
-        print(f"[DEBUG] qty: {qty} | type: {type(qty)}")
+        print(f"[DEBUG] qty: {qty_str} | type: {type(qty_str)}")
 
         if signal == 'BUY':
-            client.order_market_buy(symbol=symbol, quantity=qty)
+            client.order_market_buy(symbol=symbol, quantity=qty_str)
         elif signal == 'SELL':
-            client.order_market_sell(symbol=symbol, quantity=qty)
+            client.order_market_sell(symbol=symbol, quantity=qty_str)
 
         print(f"✅ {signal} ордер отправлен для {symbol} по {price}")
 
