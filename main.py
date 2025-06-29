@@ -91,6 +91,10 @@ def compute_rsi(series, period=14):
     rsi = 100 - (100 / (1 + rs))
     return rsi
 
+def format_quantity(qty):
+    # Преобразуем float в строку с обычной десятичной записью, не используя e-формат
+    return format(qty, 'f').rstrip('0').rstrip('.') or '0'
+
 def execute_trade(symbol, signal):
     if symbol in open_positions:
         return  # уже есть открытая позиция
@@ -99,7 +103,7 @@ def execute_trade(symbol, signal):
         ticker = client.get_symbol_ticker(symbol=symbol)
         price = float(ticker['price'])
         qty = get_trade_quantity(symbol, TRADE_AMOUNT, price)
-        qty_str=f"{0:.8}".format(qty).rstrip('0').rstrip('.')
+        qty_str=format_quantity(qty)
 
         print(f"[DEBUG] qty: {qty_str} | type: {type(qty_str)}")
 
