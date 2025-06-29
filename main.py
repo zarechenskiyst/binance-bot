@@ -166,6 +166,7 @@ def check_exit_conditions():
             entry = pos['entry_price']
             side = pos['side']
             qty = pos['qty']
+            qty_str=format_quantity(qty)
             
             change = (current_price - entry) / entry * 100
             if side == 'SELL':
@@ -177,9 +178,9 @@ def check_exit_conditions():
             if change >= 1.5 or change <= -1.0 or elapsed_minutes >= max_minutes:
                 close_side = 'SELL' if side == 'BUY' else 'BUY'
                 if close_side == 'BUY':
-                    client.order_market_buy(symbol=symbol, quantity=qty)
+                    client.order_market_buy(symbol=symbol, quantity=qty_str)
                 else:
-                    client.order_market_sell(symbol=symbol, quantity=qty)
+                    client.order_market_sell(symbol=symbol, quantity=qty_str)
 
                 profit_usdt = round(TRADE_AMOUNT * change / 100, 2)
                 result = 'win' if profit_usdt > 0 else 'loss'
