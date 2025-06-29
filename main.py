@@ -139,6 +139,8 @@ def check_exit_conditions():
             side = pos['side']
             qty = pos['qty']
 
+            print(f"[DEBUG] qty: {qty} | type: {type(qty)}")
+            
             change = (current_price - entry) / entry * 100
             if side == 'SELL':
                 change = -change  # для коротких сделок переворачиваем знак
