@@ -87,6 +87,8 @@ def execute_trade(symbol, signal):
         qty = get_trade_quantity(symbol, trade_amount, price)
         qty_str=format_quantity(qty)
 
+        exchange_info = client.get_symbol_info(symbol)                
+
         # Проверка баланса USDT перед покупкой
         if signal == 'BUY':
             balance_info = client.get_asset_balance(asset='USDT')
