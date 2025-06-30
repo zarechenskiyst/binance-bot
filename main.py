@@ -20,6 +20,10 @@ from strategies import (
 TELEGRAM_TOKEN = os.getenv("TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("CHAT_ID")
 
+# Получаем список всех доступных символов на Binance
+exchange_info = client.get_exchange_info()
+valid_binance_symbols = {s['symbol'] for s in exchange_info['symbols']}
+
 # Статистика торговли
 trade_log = []
 
@@ -42,7 +46,9 @@ client = Client(API_KEY, API_SECRET)
 client.API_URL = 'https://testnet.binance.vision/api'
 
 # 🔄 Торгуемые пары
-symbols = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'ADAUSDT', 'MATICUSDT', 'DOTUSDT', 'LINKUSDT', 'AVAXUSDT', 'XRPUSDT', 'PEPEUSDT']
+raw_symbols = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'ADAUSDT', 'MATICUSDT', 'DOTUSDT', 'LINKUSDT', 'AVAXUSDT', 'XRPUSDT', 'PEPEUSDT']
+symbols = [s for s in raw_symbols if s in valid_binance_symbols]
+
 interval = Client.KLINE_INTERVAL_5MINUTE
 lookback = 100
 
