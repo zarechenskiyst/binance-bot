@@ -113,11 +113,23 @@ def execute_trade(symbol, signal):
         qty = get_trade_quantity(symbol, TRADE_AMOUNT, price)
         qty_str=format_quantity(qty)
 
-        print(f"[DEBUG] qty: {qty_str} | type: {type(qty_str)}")
+        # Проверка баланса USDT перед покупкой
+        if signal == 'BUY':
+            balance_info = client.get_asset_balance(asset='USDT')
+            free_usdt = float(balance_info['free']) if balance_info else 0.0
+            if free_usdt < TRADE_AMOUNT:
+                return  # Недостаточно USDT — пропускаем
 
         if signal == 'BUY':
             client.order_market_buy(symbol=symbol, quantity=qty_str)
         elif signal == 'SELL':
+            # Проверка баланса монеты перед продажей
+            base_asset = symbol.replace('USDT', '')
+            balance_info = client.get_asset_balance(asset=base_asset)
+            free_balance = float(balance_info['free']) if balance_info else 0.0
+            if free_balance < qty:
+                return  # Недостаточно монет — пропускаем
+                
             client.order_market_sell(symbol=symbol, quantity=qty_str)
 
         print(f"✅ {signal} ордер отправлен для {symbol} по {price}")
