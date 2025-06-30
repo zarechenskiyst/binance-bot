@@ -4,6 +4,7 @@ import numpy as np
 import time
 import requests
 import os
+from utils import can_trade
 from datetime import datetime, timedelta
 from strategies import (
     ema_rsi_strategy,
@@ -83,7 +84,11 @@ def execute_trade(symbol, signal):
         ticker = client.get_symbol_ticker(symbol=symbol)
         price = float(ticker['price'])
 
-        trade_amount = round(current_deposit * TRADE_PERCENT / 100, 2)
+        trade_amount = current_deposit * TRADE_PERCENT / 100
+
+        if not can_trade(client, symbol, trade_amount):
+            return
+
         qty = get_trade_quantity(symbol, trade_amount, price)
         qty_str=format_quantity(qty)
 
