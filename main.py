@@ -5,6 +5,15 @@ import time
 import requests
 import os
 from datetime import datetime, timedelta
+from strategies import (
+ema_rsi_strategy,
+    bollinger_rsi_strategy,
+    macd_ema_strategy,
+    vwap_rsi_strategy,
+    macd_stochastic_strategy,
+    bollinger_volume_strategy,
+    ema_crossover_strategy
+)
 
 # Telegram конфигурация
 TELEGRAM_TOKEN = os.getenv("TOKEN")
@@ -50,54 +59,6 @@ def get_klines(symbol):
     ])
     df['close'] = df['close'].astype(float)
     return df
-
-# 📈 Индикаторы
-
-def ema_rsi_strategy(df):
-    df['EMA20'] = df['close'].ewm(span=20).mean()
-    df['RSI'] = compute_rsi(df['close'])
-    latest = df.iloc[-1]
-    if latest['close'] > latest['EMA20'] and latest['RSI'] < 70:
-        return 'BUY'
-    elif latest['close'] < latest['EMA20'] and latest['RSI'] > 30:
-        return 'SELL'
-    return None
-
-def bollinger_rsi_strategy(df):
-    df['MA20'] = df['close'].rolling(window=20).mean()
-    df['STD'] = df['close'].rolling(window=20).std()
-    df['Upper'] = df['MA20'] + 2 * df['STD']
-    df['Lower'] = df['MA20'] - 2 * df['STD']
-    df['RSI'] = compute_rsi(df['close'])
-    latest = df.iloc[-1]
-    if latest['close'] < latest['Lower'] and latest['RSI'] < 30:
-        return 'BUY'
-    elif latest['close'] > latest['Upper'] and latest['RSI'] > 70:
-        return 'SELL'
-    return None
-
-def macd_ema_strategy(df):
-    df['EMA12'] = df['close'].ewm(span=12).mean()
-    df['EMA26'] = df['close'].ewm(span=26).mean()
-    df['MACD'] = df['EMA12'] - df['EMA26']
-    df['Signal'] = df['MACD'].ewm(span=9).mean()
-    latest = df.iloc[-1]
-    prev = df.iloc[-2]
-    if prev['MACD'] < prev['Signal'] and latest['MACD'] > latest['Signal']:
-        return 'BUY'
-    elif prev['MACD'] > prev['Signal'] and latest['MACD'] < latest['Signal']:
-        return 'SELL'
-    return None
-
-def compute_rsi(series, period=14):
-    delta = series.diff()
-    gain = delta.clip(lower=0)
-    loss = -delta.clip(upper=0)
-    avg_gain = gain.rolling(window=period).mean()
-    avg_loss = loss.rolling(window=period).mean()
-    rs = avg_gain / avg_loss
-    rsi = 100 - (100 / (1 + rs))
-    return rsi
 
 def format_quantity(qty):
     # Преобразуем float в строку с обычной десятичной записью, не используя e-формат
@@ -300,12 +261,21 @@ while True:
             if df is None or df.empty:
                 continue
 
-            ema_rsi = ema_rsi_strategy(df)
-            boll_rsi = bollinger_rsi_strategy(df)
-            macd = macd_ema_strategy(df)
+            strategies = [
+                ema_rsi_strategy,
+                bollinger_rsi_strategy,
+                macd_ema_strategy,
+                vwap_rsi_strategy,
+                macd_stochastic_strategy,
+                bollinger_volume_strategy,
+                ema_crossover_strategy
+            ]
 
-          # Выбираем, какая стратегия дала сигнал
-            signal = ema_rsi or boll_rsi or macd
+            signal = None
+            for strat in strategies:
+                signal = strat(df)
+                if signal:
+                    break
 
             if signal:
                 execute_trade(symbol, signal)
