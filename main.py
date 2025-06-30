@@ -20,10 +20,6 @@ from strategies import (
 TELEGRAM_TOKEN = os.getenv("TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("CHAT_ID")
 
-# Получаем список всех доступных символов на Binance
-exchange_info = client.get_exchange_info()
-valid_binance_symbols = {s['symbol'] for s in exchange_info['symbols']}
-
 # Статистика торговли
 trade_log = []
 
