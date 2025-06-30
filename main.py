@@ -6,7 +6,7 @@ import requests
 import os
 from datetime import datetime, timedelta
 from strategies import (
-ema_rsi_strategy,
+    ema_rsi_strategy,
     bollinger_rsi_strategy,
     macd_ema_strategy,
     vwap_rsi_strategy,
