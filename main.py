@@ -42,7 +42,7 @@ client = Client(API_KEY, API_SECRET)
 client.API_URL = 'https://testnet.binance.vision/api'
 
 # 🔄 Торгуемые пары
-symbols = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'ADAUSDT', 'MATICUSDT', 'DOTUSDT', 'LINKUSDT', 'AVAXUSDT', 'XPRUSDT', 'PEPEUSDT']
+symbols = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'ADAUSDT', 'MATICUSDT', 'DOTUSDT', 'LINKUSDT', 'AVAXUSDT', 'XRPUSDT', 'PEPEUSDT']
 interval = Client.KLINE_INTERVAL_5MINUTE
 lookback = 100
 
@@ -56,7 +56,7 @@ symbol_timeouts = {
     'DOTUSDT' : 90, 
     'LINKUSDT' : 90, 
     'AVAXUSDT' : 90, 
-    'XPRUSDT' : 60, 
+    'XRPUSDT' : 60, 
     'PEPEUSDT': 45
 }
 
