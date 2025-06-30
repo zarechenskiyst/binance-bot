@@ -29,6 +29,9 @@ symbol_precision_cache = {}
 
 open_positions = {}  # Пример: {'BTCUSDT': {'side': 'BUY', 'entry_price': 30000.0, 'qty': 0.00033}}
 TRADE_AMOUNT = 10    # Сумма сделки в USDT
+START_DEPOSIT = 100.0
+TRADE_PERCENT = 5
+current_deposit = START_DEPOSIT
 
 # 🔑 API ключи с Binance Testnet
 API_KEY = os.getenv("API_KEY")
@@ -38,16 +41,22 @@ client = Client(API_KEY, API_SECRET)
 client.API_URL = 'https://testnet.binance.vision/api'
 
 # 🔄 Торгуемые пары
-symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'AVAXUSDT', 'PEPEUSDT']
+symbols = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'ADAUSDT', 'MATICUSDT', 'DOTUSDT', 'LINKUSDT', 'AVAXUSDT', 'XPRUSDT', 'PEPEUSDT']
 interval = Client.KLINE_INTERVAL_5MINUTE
 lookback = 100
 
 symbol_timeouts = {
-    'BTCUSDT': 60,
-    'ETHUSDT': 60,
-    'SOLUSDT': 45,
-    'AVAXUSDT': 45,
-    'PEPEUSDT': 30
+    'BTCUSDT' : 120, 
+    'ETHUSDT' : 120, 
+    'BNBUSDT' : 100, 
+    'SOLUSDT' : 90, 
+    'ADAUSDT' : 90, 
+    'MATICUSDT' : 90, 
+    'DOTUSDT' : 90, 
+    'LINKUSDT' : 90, 
+    'AVAXUSDT' : 90, 
+    'XPRUSDT' : 60, 
+    'PEPEUSDT': 45
 }
 
 def get_klines(symbol):
@@ -66,13 +75,16 @@ def format_quantity(qty):
     return format(qty, 'f').rstrip('0').rstrip('.') or '0'
 
 def execute_trade(symbol, signal):
+    global current_deposit
     if symbol in open_positions:
         return  # уже есть открытая позиция
 
     try:
         ticker = client.get_symbol_ticker(symbol=symbol)
         price = float(ticker['price'])
-        qty = get_trade_quantity(symbol, TRADE_AMOUNT, price)
+
+        trade_amount = round(current_deposit * TRADE_PERCENT / 100, 2)
+        qty = get_trade_quantity(symbol, trade_amount, price)
         qty_str=format_quantity(qty)
 
         # Проверка баланса USDT перед покупкой
@@ -134,6 +146,7 @@ def get_trade_quantity(symbol, trade_amount, price):
     return float(qty)
 
 def check_exit_conditions():
+    global current_deposit
     symbols_to_close = []
 
     for symbol, pos in open_positions.items():
@@ -172,17 +185,18 @@ def check_exit_conditions():
                 else:
                     client.order_market_sell(symbol=symbol, quantity=qty_str)
 
-                profit_usdt = round(TRADE_AMOUNT * change / 100, 2)
-                result = 'win' if profit_usdt > 0 else 'loss'
-
-                print(f"📤 Закрыта позиция по {symbol} — {result.upper()} ({change:.2f}%)")
-
                 # Обновление лога
                 for t in reversed(trade_log):
                     if t['symbol'] == symbol and t['result'] is None:
-                        t['result'] = result
+                        trade_amount = t['amount']
+                        profit_usdt = round(trade_amount * change / 100, 2)
+                        t['result'] = 'win' if profit_usdt > 0 else 'loss'
                         t['profit'] = profit_usdt
+                        current_deposit += profit_usdt  # не забываем обновить текущий депозит
+                        result = t['result']
+                        print(f"📤 Закрыта позиция по {symbol} — {result.upper()} ({change:.2f}%)")
                         break
+                
 
                 symbols_to_close.append(symbol)
 
