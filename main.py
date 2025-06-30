@@ -58,6 +58,7 @@ def get_klines(symbol):
         'taker_buy_base', 'taker_buy_quote', 'ignore'
     ])
     df['close'] = df['close'].astype(float)
+    df['volume'] = df['volume'].astype(float)
     return df
 
 def format_quantity(qty):
