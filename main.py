@@ -275,15 +275,11 @@ while True:
             for strat in strategies:
                 signal = strat(df)
                 if signal:
+                    print(f" 📊 {symbol}: {strat.__name__} дал сигнал {signal}")
                     break
 
             if signal:
                 execute_trade(symbol, signal)
-
-            print(f"📊 {symbol}:")
-            print(f"  EMA + RSI: {ema_rsi}")
-            print(f"  Bollinger + RSI: {boll_rsi}")
-            print(f"  MACD + EMA: {macd}")
 
         except Exception as e:
             error_message = f"⚠️ Ошибка при обработке {symbol}: {e}"
