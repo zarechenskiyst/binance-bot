@@ -178,6 +178,20 @@ def check_exit_conditions():
             max_minutes = symbol_timeouts.get(symbol, 60) # Дефолт 60 мин
             
             if change >= 1.5 or change <= -1.0 or elapsed_minutes >= max_minutes:
+
+                # Проверка перед закрытием позиции
+                base_asset = symbol.replace('USDT', '')
+
+                try:
+                    balance_info = client.get_asset_balance(asset=base_asset)
+                    free_balance = float(balance_info['free']) if balance_info else 0.0
+                except Exception:
+                    continue  # если не удалось получить баланс — пропускаем
+
+                # Если не хватает монет — пропускаем
+                if free_balance < qty:
+                    continue
+                
                 close_side = 'SELL' if side == 'BUY' else 'BUY'
                 if close_side == 'BUY':
                     client.order_market_buy(symbol=symbol, quantity=qty_str)
