@@ -31,7 +31,7 @@ symbol_precision_cache = {}
 open_positions = {}  # Пример: {'BTCUSDT': {'side': 'BUY', 'entry_price': 30000.0, 'qty': 0.00033}}
 TRADE_AMOUNT = 10    # Сумма сделки в USDT
 START_DEPOSIT = 100.0
-TRADE_PERCENT = 5
+TRADE_PERCENT = 10
 current_deposit = START_DEPOSIT
 
 # 🔑 API ключи с Binance Testnet
