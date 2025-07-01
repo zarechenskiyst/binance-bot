@@ -298,9 +298,9 @@ def round_step_size(symbol, qty):
 # 🧠 Главный цикл
 while True:
      if not is_trading_time():
-                print("⏳ Вне торгового времени. Пауза.")
-                time.sleep(60 * 5)
-                continue
+        print("⏳ Вне торгового времени. Пауза.")
+        time.sleep(60 * 5)
+        continue
 
     print(f"\n🕒 Проверка сигналов... {time.strftime('%Y-%m-%d %H:%M:%S')}")
     for symbol in symbols:
