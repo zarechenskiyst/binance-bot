@@ -297,7 +297,7 @@ def round_step_size(symbol, qty):
 
 # 🧠 Главный цикл
 while True:
-     if not is_trading_time():
+    if not is_trading_time():
         print("⏳ Вне торгового времени. Пауза.")
         time.sleep(60 * 5)
         continue
