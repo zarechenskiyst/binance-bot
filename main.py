@@ -4,6 +4,7 @@ import numpy as np
 import time
 import requests
 import os
+from zoneinfo import ZoneInfo
 from utils import can_trade
 from datetime import datetime, timedelta
 from strategies import (
@@ -66,6 +67,17 @@ symbol_timeouts = {
     'PEPEUSDT': 45
 }
 
+def is_trading_time():
+    now = datetime.now(ZoneInfo("Europe/Kyiv")).time()
+    return now >= datetime.strptime("06:00", "%H:%M").time() and now <= datetime.strptime("22:00", "%H:%M").time()
+    
+def is_volume_sufficient(df, min_volume_ratio=0.5):
+    """Проверяет, превышает ли последний объём средний хотя бы на min_volume_ratio"""
+    df['volume'] = df['volume'].astype(float)
+    avg_volume = df['volume'].rolling(window=20).mean().iloc[-2]
+    current_volume = df['volume'].iloc[-1]
+    return current_volume >= avg_volume * min_volume_ratio
+    
 def get_klines(symbol):
     klines = client.get_klines(symbol=symbol, interval=interval, limit=lookback)
     df = pd.DataFrame(klines, columns=[
@@ -242,6 +254,7 @@ def send_telegram_error(message):
         print(f"[Telegram Error Fail] {e}")
 
 def send_statistics():
+    global trade_log,  current_deposit
     if not trade_log:
         send_telegram_message("📊 Пока нет сделок.")
         return
@@ -251,11 +264,11 @@ def send_statistics():
     losses = sum(1 for t in trade_log if t['result'] == 'loss')
     total_amount = sum(t['amount'] for t in trade_log)
     total_profit = sum(t.get('profit', 0) for t in trade_log)
-    open_trades = sum(1 for t in trade_log if t['result'] is None)
 
     message = (
         "📈 *Статистика за 3 часа*\n\n"
         f"Всего сделок: {total}\n"
+        f"📦 Баланс: ${current_deposit:.2f}\n"
         f"✅ Прибыльных: {wins}\n"
         f"❌ Убыточных: {losses}\n"
         f"🟡 Открытых: {open_trades}\n"
@@ -263,6 +276,8 @@ def send_statistics():
         f"💰 Прибыль: ${total_profit:.2f}"
     )
     send_telegram_message(message)
+
+    trade_log = []
 
 def round_step_size(symbol, qty):
     if symbol in symbol_precision_cache:
@@ -282,6 +297,11 @@ def round_step_size(symbol, qty):
 
 # 🧠 Главный цикл
 while True:
+     if not is_trading_time():
+                print("⏳ Вне торгового времени. Пауза.")
+                time.sleep(60 * 5)
+                continue
+
     print(f"\n🕒 Проверка сигналов... {time.strftime('%Y-%m-%d %H:%M:%S')}")
     for symbol in symbols:
         try:
@@ -289,6 +309,7 @@ while True:
             if df is None or df.empty:
                 continue
 
+           
             strategies = [
                 ema_rsi_strategy,
                 bollinger_rsi_strategy,
@@ -299,15 +320,25 @@ while True:
                 ema_crossover_strategy
             ]
 
-            signal = None
+            signals = []
             for strat in strategies:
-                signal = strat(df)
-                if signal:
-                    print(f" 📊 {symbol}: {strat.__name__} дал сигнал {signal}")
-                    break
+                result = strat(df)
+                if result:
+                    print(f" 📊 {symbol}: {strat.__name__} дал сигнал {result}")
+                    signals.append(result)
 
-            if signal:
-                execute_trade(symbol, signal)
+            # Подтверждение от минимум 2 стратегий
+            buy_count = signals.count('BUY')
+            sell_count = signals.count('SELL')
+
+            final_signal = None
+            if buy_count >= 2:
+                final_signal = 'BUY'
+            elif sell_count >= 2:
+                final_signal = 'SELL'
+
+            if final_signal:
+                execute_trade(symbol, final_signal)
 
         except Exception as e:
             error_message = f"⚠️ Ошибка при обработке {symbol}: {e}"
