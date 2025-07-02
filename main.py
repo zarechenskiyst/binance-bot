@@ -89,6 +89,8 @@ def get_klines(symbol):
         'close_time', 'quote_asset_volume', 'number_of_trades',
         'taker_buy_base', 'taker_buy_quote', 'ignore'
     ])
+    df['high'] = df['high'].astype(float)
+    df['low'] = df['low'].astype(float)
     df['open'] = df['open'].astype(float)
     df['close'] = df['close'].astype(float)
     df['volume'] = df['volume'].astype(float)
@@ -159,7 +161,7 @@ def execute_trade(symbol, signal, confidence = 1.0, timeout = 60):
         if signal == 'BUY':
             balance_info = client.get_asset_balance(asset='USDT')
             free_usdt = float(balance_info['free']) if balance_info else 0.0
-            if free_usdt < TRADE_AMOUNT:
+            if free_usdt < trade_amount:
                 return  # Недостаточно USDT — пропускаем
 
         if signal == 'BUY':
@@ -400,12 +402,11 @@ while True:
                 volatility = estimate_volatility(df)
     
                 # Модифицируем timeout
-                base_timeout = symbol_timeouts.get(symbol, 60)
-                new_timeout = int(base_timeout * (1 + volatility))  # адаптивное время удержания
-                symbol_timeouts[symbol] = min(new_timeout, 240)  # ограничение 4ч максимум
+                new_timeout = int(adaptive_timeout * (1 + volatility))  # адаптивное время удержания
+        
 
                 # Передаём коэффициент уверенности в execute_trade
-                execute_trade(symbol, final_signal, confidence=conf_mult, timeout = new_timeout)
+                execute_trade(symbol, final_signal, confidence=conf_mult, timeout = min(new_timeout, 240))
 
         except Exception as e:
             error_message = f"⚠️ Ошибка при обработке {symbol}: {e}"
