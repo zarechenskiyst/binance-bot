@@ -53,20 +53,24 @@ symbols = [s for s in raw_symbols if s in valid_binance_symbols]
 interval = Client.KLINE_INTERVAL_5MINUTE
 lookback = 100
 
-symbol_timeouts = {
-    'BTCUSDT' : 120, 
-    'ETHUSDT' : 120, 
-    'BNBUSDT' : 100, 
-    'SOLUSDT' : 90, 
-    'ADAUSDT' : 90, 
-    'MATICUSDT' : 90, 
-    'DOTUSDT' : 90, 
-    'LINKUSDT' : 90, 
-    'AVAXUSDT' : 90, 
-    'XRPUSDT' : 60, 
-    'PEPEUSDT': 45
-}
+def confidence_multiplier(buy_count, sell_count):
+    count = max(buy_count, sell_count)
+    if count >= 4:
+        return 1.2  # высокая уверенность
+    elif count == 3:
+        return 1.1
+    elif count == 2:
+        return 1.0
+    else:
+        return 0.9  # слабый сигнал
 
+def estimate_volatility(df):
+    """Оценивает волатильность как среднее тело свечей / цену"""
+    df['body'] = abs(df['close'] - df['open'])
+    avg_body = df['body'].rolling(window=20).mean().iloc[-1]
+    avg_price = df['close'].rolling(window=20).mean().iloc[-1]
+    return avg_body / avg_price
+        
 def is_trading_time():
     now = datetime.now(ZoneInfo("Europe/Kyiv")).time()
     return now >= datetime.strptime("06:00", "%H:%M").time() and now <= datetime.strptime("22:00", "%H:%M").time()
@@ -85,15 +89,41 @@ def get_klines(symbol):
         'close_time', 'quote_asset_volume', 'number_of_trades',
         'taker_buy_base', 'taker_buy_quote', 'ignore'
     ])
+    df['open'] = df['open'].astype(float)
     df['close'] = df['close'].astype(float)
     df['volume'] = df['volume'].astype(float)
     return df
+
+def get_symbol_winrate(symbol, min_trades=5):
+    """Возвращает winrate символа, если достаточно сделок"""
+    trades = [t for t in trade_log if t['symbol'] == symbol and t['result'] in ('win', 'loss')]
+    total = len(trades)
+    if total < min_trades:
+        return None  # недостаточно данных
+    wins = sum(1 for t in trades if t['result'] == 'win')
+    return wins / total
+    
+def calculate_adaptive_timeout(df):
+    """Адаптивный тайм-аут на основе волатильности"""
+    df['high'] = df['high'].astype(float)
+    df['low'] = df['low'].astype(float)
+    df['close'] = df['close'].astype(float)
+
+    volatility = (df['high'] - df['low']) / df['close'] * 100
+    avg_volatility = volatility.rolling(window=20).mean().iloc[-1]
+
+    if avg_volatility > 3:
+        return 30  # высокая волатильность — держим коротко
+    elif avg_volatility > 1.5:
+        return 60
+    else:
+        return 90  # низкая волатильность — дольше держим
 
 def format_quantity(qty):
     # Преобразуем float в строку с обычной десятичной записью, не используя e-формат
     return format(qty, 'f').rstrip('0').rstrip('.') or '0'
 
-def execute_trade(symbol, signal):
+def execute_trade(symbol, signal, confidence = 1.0, timeout = 60):
     global current_deposit
     if symbol in open_positions:
         return  # уже есть открытая позиция
@@ -102,7 +132,20 @@ def execute_trade(symbol, signal):
         ticker = client.get_symbol_ticker(symbol=symbol)
         price = float(ticker['price'])
 
-        trade_amount = current_deposit * TRADE_PERCENT / 100
+        base_percent = TRADE_PERCENT
+
+        extra_percent= 0
+        # Получаем winrate для символа
+        winrate = get_symbol_winrate(symbol)
+
+        if winrate is not None:
+            if winrate >= 0.7:
+                extra_percent = 2  # +5% к ставке
+            elif winrate <= 0.5:
+                extra_percent = -2  # -5% (сниженная ставка)
+        
+        adjusted_percent = min(base_percent + extra_percent + (confidence - 2) * 2, 30)
+        trade_amount = current_deposit * adjusted_percent / 100
 
         if not can_trade(client, symbol, trade_amount):
             return
@@ -137,13 +180,14 @@ def execute_trade(symbol, signal):
             'side': signal,
             'entry_price': price,
             'qty': qty,
-            'time': datetime.now()
+            'time': datetime.now(),
+            'timeout': timeout
         }
 
         trade_log.append({
             'symbol': symbol,
             'direction': signal,
-            'amount': TRADE_AMOUNT,
+            'amount': trade_amount,
             'entry_price': price,
             'timestamp': datetime.now(),
             'result': None,
@@ -187,7 +231,7 @@ def check_exit_conditions():
                 change = -change  # для коротких сделок переворачиваем знак
 
             elapsed_minutes = (datetime.now() - pos['time']).total_seconds() / 60
-            max_minutes = symbol_timeouts.get(symbol, 60) # Дефолт 60 мин
+            max_minutes = pos.get('timeout', 60) # Дефолт 60 мин
             
             if change >= 1.5 or change <= -1.0 or elapsed_minutes >= max_minutes:
 
@@ -263,11 +307,14 @@ def send_statistics():
         send_telegram_message("📊 Пока нет сделок.")
         return
 
-    total = len(trade_log)
-    wins = sum(1 for t in trade_log if t['result'] == 'win')
-    losses = sum(1 for t in trade_log if t['result'] == 'loss')
-    total_amount = sum(t['amount'] for t in trade_log)
-    total_profit = sum(t.get('profit', 0) for t in trade_log)
+    closed_trades = [t for t in trade_log if t['result'] is not None]
+    open_trades= [t for t in trade_log if t['result'] is None]
+    
+    total = len(closed_trades)
+    wins = sum(1 for t in closed_trades if t['result'] == 'win')
+    losses = sum(1 for t in closed_trades if t['result'] == 'loss')
+    total_amount = sum(t['amount'] for t in closed_trades)
+    total_profit = sum(t.get('profit', 0) for t in closed_trades)
     open_trades = len(open_positions)
 
     message = (
@@ -282,7 +329,7 @@ def send_statistics():
     )
     send_telegram_message(message)
 
-    trade_log = []
+    trade_log = [t for t in trade_log if t['result'] is None]
 
 def round_step_size(symbol, qty):
     if symbol in symbol_precision_cache:
@@ -314,7 +361,8 @@ while True:
             if df is None or df.empty:
                 continue
 
-           
+            adaptive_timeout = calculate_adaptive_timeout(df)
+            
             strategies = [
                 ema_rsi_strategy,
                 bollinger_rsi_strategy,
@@ -337,13 +385,27 @@ while True:
             sell_count = signals.count('SELL')
 
             final_signal = None
-            if buy_count >= 2:
+            confidence = 0
+            
+            if buy_count >= 2 and sell_count == 0:
                 final_signal = 'BUY'
-            elif sell_count >= 2:
+            elif sell_count >= 2 and buy_count == 0:
                 final_signal = 'SELL'
 
             if final_signal:
-                execute_trade(symbol, final_signal)
+                # Коэффициенты уверенности
+                conf_mult = confidence_multiplier(buy_count, sell_count)
+
+                # Волатильность
+                volatility = estimate_volatility(df)
+    
+                # Модифицируем timeout
+                base_timeout = symbol_timeouts.get(symbol, 60)
+                new_timeout = int(base_timeout * (1 + volatility))  # адаптивное время удержания
+                symbol_timeouts[symbol] = min(new_timeout, 240)  # ограничение 4ч максимум
+
+                # Передаём коэффициент уверенности в execute_trade
+                execute_trade(symbol, final_signal, confidence=conf_mult, timeout = new_timeout)
 
         except Exception as e:
             error_message = f"⚠️ Ошибка при обработке {symbol}: {e}"
