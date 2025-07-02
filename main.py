@@ -226,9 +226,13 @@ def check_exit_conditions():
                 symbols_to_close.append(symbol)
 
         except Exception as e:
-            error_message = f"❌ Ошибка при закрытии {symbol}: {e}"
-            print(f"{error_message}")
-            send_telegram_error(error_message)
+            error_message = str(e)
+            if "502 Bad Gateway" in error_message:
+                print(f"⚠️ Binance временно недоступен при закрытии {symbol} — ошибка 502.")
+                continue  # просто пропускаем и пробуем позже
+            else:
+                print(f"❌ Ошибка при закрытии {symbol}: {e}")
+                send_telegram_error(error_message)
 
     for s in symbols_to_close:
         open_positions.pop(s)
@@ -264,6 +268,7 @@ def send_statistics():
     losses = sum(1 for t in trade_log if t['result'] == 'loss')
     total_amount = sum(t['amount'] for t in trade_log)
     total_profit = sum(t.get('profit', 0) for t in trade_log)
+    open_trades = len(open_positions)
 
     message = (
         "📈 *Статистика за 3 часа*\n\n"
