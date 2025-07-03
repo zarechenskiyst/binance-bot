@@ -62,6 +62,81 @@ symbols = [s for s in raw_symbols if s in valid_binance_symbols]
 interval = Client.KLINE_INTERVAL_5MINUTE
 lookback = 100
 
+REPORT_HOUR = 8  # час (0–23) отправки ежедневного отчёта
+def next_daily_time(now=None):
+    now = now or datetime.now(ZoneInfo("Europe/Kyiv"))
+    # Берём сегодня в REPORT_HOUR
+    target = now.replace(hour=REPORT_HOUR, minute=0, second=0, microsecond=0)
+    if now >= target:
+        target += timedelta(days=1)
+    return target
+
+next_daily_report = next_daily_time()
+
+def send_daily_statistics():
+    """
+    Ежедневная сводка по всем завершённым сделкам за последние 24 часа:
+    - общее число сделок, прибыль/убыток, win-rate
+    - win-rate по символам
+    - win-rate по стратегиям (если в trade_log_all есть t['strategy'])
+    """
+    now = datetime.now(ZoneInfo("Europe/Kyiv"))
+    yesterday = now - timedelta(days=1)
+
+    # Фильтруем только закрытые сделки за последние 24 часа
+    recent = [
+        t for t in trade_log_all
+        if t['result'] in ('win','loss') and t['timestamp'] >= yesterday
+    ]
+
+    total = len(recent)
+    wins  = sum(1 for t in recent if t['result']=='win')
+    losses= sum(1 for t in recent if t['result']=='loss')
+    profit= sum(t['profit'] for t in recent)
+
+    # Общая часть
+    if total == 0:
+        header = "📅 *Ежедневная статистика*\n\nЗа последние 24 ч сделок не было."
+    else:
+        wr = wins/total*100
+        header = (
+            "📅 *Ежедневная статистика за 24 ч*\n\n"
+            f"Всего сделок: {total}\n"
+            f"✅ Прибыльных: {wins}\n"
+            f"❌ Убыточных: {losses}\n"
+            f"🎯 Win Rate: {wr:.1f}%\n"
+            f"💰 Чистая прибыль: ${profit:.2f}\n\n"
+        )
+
+    # Win-rate по символам
+    by_symbol = {}
+    for t in recent:
+        sym = t['symbol']
+        by_symbol.setdefault(sym, []).append(t['result'])
+    symbol_lines = []
+    for sym, results in by_symbol.items():
+        tot = len(results)
+        w   = results.count('win')
+        symbol_lines.append(f"{sym}: {w}/{tot} ({w/tot*100:.1f}%)")
+    symbol_section = "*По активам:*\n" + "\n".join(symbol_lines) + "\n\n"
+
+    # Win-rate по стратегиям (если есть поле 'strategy')
+    strategy_section = ""
+    if any('strategy' in t for t in recent):
+        by_strat = {}
+        for t in recent:
+            for strat in t['strategy'].split(','):
+                by_strat.setdefault(strat, []).append(t['result'])
+        strat_lines = []
+        for strat, results in by_strat.items():
+            tot = len(results)
+            w   = results.count('win')
+            strat_lines.append(f"{strat}: {w}/{tot} ({w/tot*100:.1f}%)")
+        strategy_section = "*По стратегиям:*\n" + "\n".join(strat_lines) + "\n\n"
+
+    message = header + symbol_section + strategy_section
+    send_telegram_message(message)
+
 def confidence_multiplier(buy_count, sell_count):
     count = max(buy_count, sell_count)
     if count >= 4:
@@ -432,7 +507,6 @@ while True:
                 # Модифицируем timeout
                 new_timeout = int(adaptive_timeout * (1 + volatility))  # адаптивное время удержания
         
-
                 # Передаём коэффициент уверенности в execute_trade
                 execute_trade(symbol, final_signal, confidence=conf_mult, timeout = min(new_timeout, 240))
 
@@ -445,6 +519,12 @@ while True:
     if datetime.now() >= next_report_time:
         send_statistics()
         next_report_time = datetime.now() + timedelta(hours=3)
+
+    # Ежедневный отчёт
+    now = datetime.now(ZoneInfo("Europe/Kyiv"))
+    if now >= next_daily_report:
+        send_daily_statistics()
+        next_daily_report = next_daily_time(now)
 
     check_exit_conditions()
     
