@@ -271,10 +271,21 @@ def check_exit_conditions():
                         current_deposit += profit_usdt  # не забываем обновить текущий депозит
                         result = t['result']
                         print(f"📤 Закрыта позиция по {symbol} — {result.upper()} ({change:.2f}%)")
+                        if t['result'] == 'loss':
+                            consecutive_losses += 1
+                        else:
+                            consecutive_losses = 0
+
+                        # Если дошли до порога — ставим паузу
+                        if consecutive_losses >= LOSS_PAUSE_THRESHOLD:
+                        pause_until = datetime.now() + timedelta(minutes=PAUSE_DURATION_MIN)
+                        print(f"⏸️ Ставим паузу до {pause_until.strftime('%H:%M')}, из-за {consecutive_losses} убыточных сделок подряд.")
                         break
                 
 
                 symbols_to_close.append(symbol)
+
+                
 
         except Exception as e:
             error_message = str(e)
@@ -369,6 +380,11 @@ while True:
         try:
             df = get_klines(symbol)
             if df is None or df.empty:
+                continue
+
+             if pause_until and datetime.now() < pause_until:
+                print(f"⏸ Торговля на паузе до {pause_until.strftime('%H:%M')}")
+                time.sleep(60 * 5)
                 continue
 
             adaptive_timeout = calculate_adaptive_timeout(df)
