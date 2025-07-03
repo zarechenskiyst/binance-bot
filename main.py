@@ -34,6 +34,12 @@ START_DEPOSIT = 100.0
 TRADE_PERCENT = 15
 current_deposit = START_DEPOSIT
 
+# В начале файла
+strategy_params = {'ema_period': 20, 'rsi_period': 14}  # при желании — сюда же можно добавить macd_fast=12, macd_slow=26 и т.д.
+trade_log_all = [] # для хранения полной истории
+consecutive-losses = 0
+pause_until = None
+
 # 🔑 API ключи с Binance Testnet
 API_KEY = os.getenv("API_KEY")
 API_SECRET = os.getenv("API_SECRET")
@@ -331,6 +337,9 @@ def send_statistics():
     send_telegram_message(message)
 
     trade_log = [t for t in trade_log if t['result'] is None]
+
+    trade_log_all.extend(closed_trades)
+    optimize_parameters()
 
 def round_step_size(symbol, qty):
     if symbol in symbol_precision_cache:
