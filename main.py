@@ -382,13 +382,13 @@ while True:
     print(f"\n🕒 Проверка сигналов... {time.strftime('%Y-%m-%d %H:%M:%S')}")
     for symbol in symbols:
         try:
-            df = get_klines(symbol)
-            if df is None or df.empty:
-                continue
-
-             if pause_until and datetime.now() < pause_until:
+            if pause_until and datetime.now() < pause_until:
                 print(f"⏸ Торговля на паузе до {pause_until.strftime('%H:%M')}")
                 time.sleep(60 * 5)
+                continue
+                
+            df = get_klines(symbol)
+            if df is None or df.empty:
                 continue
 
             adaptive_timeout = calculate_adaptive_timeout(df)
