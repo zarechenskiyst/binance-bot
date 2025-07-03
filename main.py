@@ -282,8 +282,8 @@ def check_exit_conditions():
 
                         # Если дошли до порога — ставим паузу
                         if consecutive_losses >= LOSS_PAUSE_THRESHOLD:
-                        pause_until = datetime.now() + timedelta(minutes=PAUSE_DURATION_MIN)
-                        print(f"⏸️ Ставим паузу до {pause_until.strftime('%H:%M')}, из-за {consecutive_losses} убыточных сделок подряд.")
+                            pause_until = datetime.now() + timedelta(minutes=PAUSE_DURATION_MIN)
+                            print(f"⏸️ Ставим паузу до {pause_until.strftime('%H:%M')}, из-за {consecutive_losses} убыточных сделок подряд.")
                         break
                 
 
