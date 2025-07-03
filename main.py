@@ -5,7 +5,7 @@ import time
 import requests
 import os
 from zoneinfo import ZoneInfo
-from utils import can_trade
+from utils import can_trade, optimize_parameters
 from datetime import datetime, timedelta
 from strategies import (
     ema_rsi_strategy,
@@ -37,7 +37,11 @@ current_deposit = START_DEPOSIT
 # В начале файла
 strategy_params = {'ema_period': 20, 'rsi_period': 14}  # при желании — сюда же можно добавить macd_fast=12, macd_slow=26 и т.д.
 trade_log_all = [] # для хранения полной истории
-consecutive-losses = 0
+consecutive_losses = 0
+pause_until = None
+
+LOSS_PAUSE_THRESHOLD = 3
+PAUSE_DURATION_MIN = 60
 pause_until = None
 
 # 🔑 API ключи с Binance Testnet
