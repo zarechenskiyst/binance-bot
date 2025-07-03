@@ -74,16 +74,10 @@ def next_daily_time(now=None):
 next_daily_report = next_daily_time()
 
 def send_daily_statistics():
-    """
-    Ежедневная сводка по всем завершённым сделкам за последние 24 часа:
-    - общее число сделок, прибыль/убыток, win-rate
-    - win-rate по символам
-    - win-rate по стратегиям (если в trade_log_all есть t['strategy'])
-    """
     now = datetime.now(ZoneInfo("Europe/Kyiv"))
     yesterday = now - timedelta(days=1)
 
-    # Фильтруем только закрытые сделки за последние 24 часа
+    # Фильтрация последних 24 ч закрытых сделок
     recent = [
         t for t in trade_log_all
         if t['result'] in ('win','loss') and t['timestamp'] >= yesterday
@@ -94,7 +88,7 @@ def send_daily_statistics():
     losses= sum(1 for t in recent if t['result']=='loss')
     profit= sum(t['profit'] for t in recent)
 
-    # Общая часть
+    # Заголовок
     if total == 0:
         header = "📅 *Ежедневная статистика*\n\nЗа последние 24 ч сделок не было."
     else:
@@ -108,33 +102,57 @@ def send_daily_statistics():
             f"💰 Чистая прибыль: ${profit:.2f}\n\n"
         )
 
-    # Win-rate по символам
+    # Win-rate по активам
     by_symbol = {}
     for t in recent:
-        sym = t['symbol']
-        by_symbol.setdefault(sym, []).append(t['result'])
+        by_symbol.setdefault(t['symbol'], []).append(t['result'])
+
     symbol_lines = []
-    for sym, results in by_symbol.items():
-        tot = len(results)
-        w   = results.count('win')
-        symbol_lines.append(f"{sym}: {w}/{tot} ({w/tot*100:.1f}%)")
+    recommendations = []
+    for sym, res in by_symbol.items():
+        tot = len(res)
+        w   = res.count('win')
+        wr_sym = w/tot*100
+        symbol_lines.append(f"{sym}: {w}/{tot} ({wr_sym:.1f}%)")
+        # рекомендации по активам
+        if wr_sym < 50:
+            recommendations.append(f"• {sym}: низкий win rate ({wr_sym:.1f}%) – снизьте объём или отключите.")
+        elif wr_sym < 70:
+            recommendations.append(f"• {sym}: средний win rate ({wr_sym:.1f}%) – можно скорректировать фильтры объёма/времени.")
+
     symbol_section = "*По активам:*\n" + "\n".join(symbol_lines) + "\n\n"
 
-    # Win-rate по стратегиям (если есть поле 'strategy')
-    strategy_section = ""
+    # Win-rate по стратегиям
+    strat_section = ""
+    strat_recs = []
     if any('strategy' in t for t in recent):
         by_strat = {}
         for t in recent:
             for strat in t['strategy'].split(','):
                 by_strat.setdefault(strat, []).append(t['result'])
-        strat_lines = []
-        for strat, results in by_strat.items():
-            tot = len(results)
-            w   = results.count('win')
-            strat_lines.append(f"{strat}: {w}/{tot} ({w/tot*100:.1f}%)")
-        strategy_section = "*По стратегиям:*\n" + "\n".join(strat_lines) + "\n\n"
 
-    message = header + symbol_section + strategy_section
+        strat_lines = []
+        for strat, res in by_strat.items():
+            tot = len(res)
+            w   = res.count('win')
+            wr_st = w/tot*100
+            strat_lines.append(f"{strat}: {w}/{tot} ({wr_st:.1f}%)")
+            # рекомендации по стратегиям
+            if wr_st < 50:
+                strat_recs.append(f"• {strat}: низкий win rate ({wr_st:.1f}%) – увеличить требование подтверждения или отключить.")
+            elif wr_st < 70:
+                strat_recs.append(f"• {strat}: средний win rate ({wr_st:.1f}%) – проверьте параметры (EMA/RSI).")
+
+        strat_section = "*По стратегиям:*\n" + "\n".join(strat_lines) + "\n\n"
+
+    # Собираем итоговое сообщение
+    message = header + symbol_section + strat_section
+
+    # Если есть рекомендации — добавляем
+    if recommendations or strat_recs:
+        message += "💡 *Рекомендации:*\n"
+        message += "\n".join(recommendations + strat_recs)
+
     send_telegram_message(message)
 
 def confidence_multiplier(buy_count, sell_count):
