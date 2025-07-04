@@ -23,6 +23,7 @@ TELEGRAM_CHAT_ID = os.getenv("CHAT_ID")
 
 # Статистика торговли
 trade_log = []
+trade_log_all = []
 
 # Время следующей отправки отчета
 next_report_time = datetime.now() + timedelta(hours=3)
@@ -290,6 +291,7 @@ def execute_trade(symbol, signal, confidence = 1.0, timeout = 60):
 
         trade_log.append({
             'symbol': symbol,
+            'strategy': strategy_name,
             'direction': signal,
             'amount': trade_amount,
             'entry_price': price,
