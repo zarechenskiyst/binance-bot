@@ -319,7 +319,7 @@ def get_trade_quantity(symbol, trade_amount, price):
     return float(qty)
 
 def check_exit_conditions():
-    global current_deposit
+    global current_deposit, consecutive_losses
     symbols_to_close = []
 
     for symbol, pos in open_positions.items():
