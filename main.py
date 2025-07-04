@@ -528,7 +528,7 @@ while True:
                 new_timeout = int(adaptive_timeout * (1 + volatility))  # адаптивное время удержания
         
                 # Передаём коэффициент уверенности в execute_trade
-                strategy_used= next((name for sig, name in signalsif sig == final_signal), "unknown")
+                strategy_used= next((name for sig, name in signals if sig == final_signal), "unknown")
                 execute_trade(symbol, final_signal, confidence=conf_mult, timeout = min(new_timeout, 240), strategy_name=strategy_used)
 
         except Exception as e:
