@@ -448,7 +448,7 @@ def send_statistics():
     trade_log = [t for t in trade_log if t['result'] is None]
 
     trade_log_all.extend(closed_trades)
-    optimize_parameters()
+    optimize_parameters(trade_log_all)
 
 def round_step_size(symbol, qty):
     if symbol in symbol_precision_cache:
