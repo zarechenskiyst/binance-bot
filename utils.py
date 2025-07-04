@@ -26,13 +26,13 @@ def can_trade(client: Client, symbol: str, trade_amount: float) -> bool:
 
     return True
 
-def optimize_parameters(window=50, min_winrate=0.5):
+def optimize_parameters(trade_history, window=50, min_winrate=0.5):
     """
     Берём последние `window` закрытых сделок и пересчитываем winrate.
     Если winrate ниже `min_winrate`, пробуем слегка поменять параметры.
     """
     # Берём последние завершённые сделки
-    closed = [t for t in trade_log_all if t['result'] in ('win','loss')]
+    closed = [t for t in trade_history if t['result'] in ('win','loss')]
     recent = closed[-window:]
     if len(recent) < window:
         return  # ещё мало данных
