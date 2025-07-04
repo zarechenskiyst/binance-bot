@@ -228,7 +228,7 @@ def format_quantity(qty):
     # Преобразуем float в строку с обычной десятичной записью, не используя e-формат
     return format(qty, 'f').rstrip('0').rstrip('.') or '0'
 
-def execute_trade(symbol, signal, confidence = 1.0, timeout = 60):
+def execute_trade(symbol, signal, confidence = 1.0, timeout = 60, strategy_name="unknown"):
     global current_deposit
     if symbol in open_positions:
         return  # уже есть открытая позиция
@@ -503,7 +503,7 @@ while True:
                 result = strat(df)
                 if result:
                     print(f" 📊 {symbol}: {strat.__name__} дал сигнал {result}")
-                    signals.append(result)
+                    signals.append(result, strat.__name__)
 
             # Подтверждение от минимум 2 стратегий
             buy_count = signals.count('BUY')
@@ -528,7 +528,8 @@ while True:
                 new_timeout = int(adaptive_timeout * (1 + volatility))  # адаптивное время удержания
         
                 # Передаём коэффициент уверенности в execute_trade
-                execute_trade(symbol, final_signal, confidence=conf_mult, timeout = min(new_timeout, 240))
+                strategy_used= next((name for sig, name in signalsif sig == final_signal), "unknown")
+                execute_trade(symbol, final_signal, confidence=conf_mult, timeout = min(new_timeout, 240), strategy_name=strategy_used)
 
         except Exception as e:
             error_message = f"⚠️ Ошибка при обработке {symbol}: {e}"
