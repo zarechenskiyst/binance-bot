@@ -3,11 +3,11 @@ import numpy as np
 from indicators import compute_rsi
 
 # 📌 EMA + RSI
-def ema_rsi_strategy(df):
-    from main import strategy_params
-    period = strategy_params['ema_period']
+def ema_rsi_strategy(df, params=None):
+    params = params or {}
+    period = params['ema_period']
     df['EMA20'] = df['close'].ewm(span=period).mean()
-    df['RSI'] = compute_rsi(df['close'], period = strategy_params['rsi_period'])
+    df['RSI'] = compute_rsi(df['close'], period = params['rsi_period'])
     latest = df.iloc[-1]
     if latest['close'] > latest['EMA20'] and latest['RSI'] < 70:
         return 'BUY'
@@ -16,7 +16,7 @@ def ema_rsi_strategy(df):
     return None
 
 # 📌 Bollinger + RSI
-def bollinger_rsi_strategy(df):
+def bollinger_rsi_strategy(df, params=None):
     df['MA20'] = df['close'].rolling(window=20).mean()
     df['STD'] = df['close'].rolling(window=20).std()
     df['Upper'] = df['MA20'] + 2 * df['STD']
@@ -30,7 +30,7 @@ def bollinger_rsi_strategy(df):
     return None
 
 # 📌 MACD + EMA
-def macd_ema_strategy(df):
+def macd_ema_strategy(df, params=None):
     df['EMA12'] = df['close'].ewm(span=12).mean()
     df['EMA26'] = df['close'].ewm(span=26).mean()
     df['MACD'] = df['EMA12'] - df['EMA26']
@@ -44,7 +44,7 @@ def macd_ema_strategy(df):
     return None
 
 # 📌 VWAP + RSI
-def vwap_rsi_strategy(df):
+def vwap_rsi_strategy(df, params=None):
     q = df['volume']
     p = df['close']
     df['VWAP'] = (p * q).cumsum() / q.cumsum()
@@ -67,7 +67,7 @@ def stochastic_rsi(close, period=14, smoothK=3, smoothD=3):
     return k, d
 
 # 📌 MACD + Stochastic RSI
-def macd_stochastic_strategy(df):
+def macd_stochastic_strategy(df, params=None):
     df['EMA12'] = df['close'].ewm(span=12).mean()
     df['EMA26'] = df['close'].ewm(span=26).mean()
     df['MACD'] = df['EMA12'] - df['EMA26']
@@ -103,7 +103,7 @@ def bollinger_volume_strategy(df, volume_threshold=1.5):
     return None
 
 # 📌 EMA50 / EMA200 crossover
-def ema_crossover_strategy(df):
+def ema_crossover_strategy(df, params=None):
     df['EMA50'] = df['close'].ewm(span=50).mean()
     df['EMA200'] = df['close'].ewm(span=200).mean()
     latest = df.iloc[-1]
