@@ -22,9 +22,6 @@ from strategies import (
 HISTORY_FILE = os.path.join(os.path.dirname(__file__), 'trade_history.json')
 
 
-# В конце send_statistics(), после trade_log_all.extend(...)
-save_trade_history()
-
 # Telegram конфигурация
 TELEGRAM_TOKEN = os.getenv("TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("CHAT_ID")
