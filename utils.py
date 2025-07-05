@@ -1,9 +1,26 @@
 from binance.client import Client
-from main import strategy_params
 
 # Кэш для minNotional
 min_notional_cache = {}
 
+# Параметры стратегий по умолчанию
+strategy_params = {
+    'ema_rsi_strategy':        {'ema_period': 20, 'rsi_period': 14},
+    'bollinger_rsi_strategy':  {'window': 20, 'rsi_period': 14},
+    'macd_ema_strategy':       {'fast': 12, 'slow': 26, 'signal': 9},
+    'vwap_rsi_strategy':       {'rsi_period': 14},
+    'macd_stochastic_strategy':{},
+    'bollinger_volume_strategy':{},
+    'ema_crossover_strategy':  {'fast': 9, 'slow': 21}
+}
+
+def get_strategy_params(strategy_name):
+    """
+    Возвращает параметры для переданной стратегии.
+    Если стратегия не найдена — вернёт пустой словарь.
+    """
+    return strategy_params.get(strategy_name, {})
+    
 def can_trade(client: Client, symbol: str, trade_amount: float) -> bool:
     """
     Проверяет, можно ли торговать по символу, исходя из минимального notional (minNotional).
