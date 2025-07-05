@@ -5,7 +5,7 @@ import time
 import requests
 import os
 from zoneinfo import ZoneInfo
-from utils import can_trade, optimize_parameters
+from utils import can_trade, optimize_parameters, get_strategy_params
 from datetime import datetime, timedelta
 from strategies import (
     ema_rsi_strategy,
@@ -499,7 +499,8 @@ while True:
 
             signals = []
             for strat in strategies:
-                result = strat(df)
+                params = get_strategy_params(strat.__name__)
+                result = strat(df, params=params)
                 if result:
                     print(f" 📊 {symbol}: {strat.__name__} дал сигнал {result}")
                     signals.append(result)
