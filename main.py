@@ -85,6 +85,7 @@ def load_trade_history():
         # Приводим timestamp из строк в datetime
         for t in data:
             t['timestamp'] = datetime.fromisoformat(t['timestamp'])
+            
         trade_log_all = data
 
 def save_trade_history():
