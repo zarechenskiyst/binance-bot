@@ -36,7 +36,7 @@ TRADE_PERCENT = 15
 current_deposit = START_DEPOSIT
 
 # В начале файла
-strategy_params = {'ema_period': 20, 'rsi_period': 14}  # при желании — сюда же можно добавить macd_fast=12, macd_slow=26 и т.д.
+
 trade_log_all = [] # для хранения полной истории
 consecutive_losses = 0
 pause_until = None
