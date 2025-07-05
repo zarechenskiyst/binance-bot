@@ -4,6 +4,7 @@ import numpy as np
 import time
 import requests
 import os
+import json
 from zoneinfo import ZoneInfo
 from utils import can_trade, optimize_parameters, get_strategy_params
 from datetime import datetime, timedelta
@@ -16,6 +17,13 @@ from strategies import (
     bollinger_volume_strategy,
     ema_crossover_strategy
 )
+
+
+HISTORY_FILE = os.path.join(os.path.dirname(__file__), 'trade_history.json')
+
+
+# В конце send_statistics(), после trade_log_all.extend(...)
+save_trade_history()
 
 # Telegram конфигурация
 TELEGRAM_TOKEN = os.getenv("TOKEN")
@@ -63,7 +71,21 @@ symbols = [s for s in raw_symbols if s in valid_binance_symbols]
 interval = Client.KLINE_INTERVAL_5MINUTE
 lookback = 100
 
-REPORT_HOUR = 8  # час (0–23) отправки ежедневного отчёта
+REPORT_HOUR = 20  # час (0–23) отправки ежедневного отчёта
+
+def load_trade_history():
+    if trade_log_all is []:
+        with open(HISTORY_FILE, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    # Приводим timestamp из строк в datetime
+    for t in data:
+        t['timestamp'] = datetime.fromisoformat(t['timestamp'])
+    trade_log_all = data
+
+def save_trade_history():
+    with open(HISTORY_FILE, 'w', encoding='utf-8') as f:
+        json.dump(trade_log_all, f, default=str, ensure_ascii=False, indent=2)
+        
 def next_daily_time(now=None):
     now = now or datetime.now(ZoneInfo("Europe/Kyiv"))
     # Берём сегодня в REPORT_HOUR
@@ -448,6 +470,8 @@ def send_statistics():
     trade_log = [t for t in trade_log if t['result'] is None]
 
     trade_log_all.extend(closed_trades)
+    load_trade_history()
+    save_trade_history()
     optimize_parameters(trade_log_all)
 
 def round_step_size(symbol, qty):
