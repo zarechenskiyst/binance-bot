@@ -76,7 +76,7 @@ REPORT_HOUR = 20  # час (0–23) отправки ежедневного от
 def load_trade_history():
     if trade_log_all is []:
         with open(HISTORY_FILE, 'r', encoding='utf-8') as f:
-        data = json.load(f)
+            data = json.load(f)
         # Приводим timestamp из строк в datetime
         for t in data:
             t['timestamp'] = datetime.fromisoformat(t['timestamp'])
