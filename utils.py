@@ -1,4 +1,5 @@
 from binance.client import Client
+from main import strategy_params
 
 # Кэш для minNotional
 min_notional_cache = {}
