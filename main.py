@@ -77,10 +77,10 @@ def load_trade_history():
     if trade_log_all is []:
         with open(HISTORY_FILE, 'r', encoding='utf-8') as f:
         data = json.load(f)
-    # Приводим timestamp из строк в datetime
-    for t in data:
-        t['timestamp'] = datetime.fromisoformat(t['timestamp'])
-    trade_log_all = data
+        # Приводим timestamp из строк в datetime
+        for t in data:
+            t['timestamp'] = datetime.fromisoformat(t['timestamp'])
+        trade_log_all = data
 
 def save_trade_history():
     with open(HISTORY_FILE, 'w', encoding='utf-8') as f:
