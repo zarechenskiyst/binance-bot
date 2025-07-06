@@ -1,10 +1,9 @@
 import pandas as pd
 
 # 📌 RSI
-def compute_rsi(series, period=None):
+def compute_rsi(series, period=Noneб params=None):
     if period is None:
-        from main import strategy_params
-        period = strategy_params['rsi_period']
+        period = params['rsi_period']
     delta = series.diff()
     gain = delta.clip(lower=0)
     loss = -delta.clip(upper=0)
