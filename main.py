@@ -527,7 +527,6 @@ while True:
             signals = []
             for strat in strategies:
                 params = get_strategy_params(strat.__name__)
-                print(f"{params}")
                 result = strat(df, params=params)
                 if result:
                     print(f" 📊 {symbol}: {strat.__name__} дал сигнал {result}")
