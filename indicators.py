@@ -3,9 +3,10 @@ import pandas as pd
 # 📌 RSI
 def compute_rsi(series, period=None, params=None):
     if period is None:
-        period = params['rsi_period']
-    else:
-        period = 14
+        if params and 'rsi_period' in params:
+            period = params['rsi_period']
+        else:
+            period = 14
     delta = series.diff()
     gain = delta.clip(lower=0)
     loss = -delta.clip(upper=0)
