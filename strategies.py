@@ -7,7 +7,7 @@ def ema_rsi_strategy(df, params=None):
     params = params or {}
     period = params['ema_period']
     df['EMA20'] = df['close'].ewm(span=period).mean()
-    df['RSI'] = compute_rsi(df['close'], period = params['rsi_period'])
+    df['RSI'] = compute_rsi(df['close'], period = params['rsi_period'], params)
     latest = df.iloc[-1]
     if latest['close'] > latest['EMA20'] and latest['RSI'] < 70:
         return 'BUY'
