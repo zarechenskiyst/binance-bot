@@ -1,7 +1,7 @@
 import pandas as pd
 
 # 📌 RSI
-def compute_rsi(series, period=Noneб params=None):
+def compute_rsi(series, period=None, params=None):
     if period is None:
         period = params['rsi_period']
     delta = series.diff()
