@@ -88,7 +88,7 @@ def macd_stochastic_strategy(df, params=None):
     return None
 
 # 📌 Bollinger + Volume Spike
-def bollinger_volume_strategy(df, volume_threshold=1.5):
+def bollinger_volume_strategy(df, volume_threshold=1.5, params=None):
     df['MA20'] = df['close'].rolling(window=20).mean()
     df['STD'] = df['close'].rolling(window=20).std()
     df['Upper'] = df['MA20'] + 2 * df['STD']
