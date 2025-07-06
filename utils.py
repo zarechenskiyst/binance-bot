@@ -19,6 +19,7 @@ def get_strategy_params(strategy_name):
     Возвращает параметры для переданной стратегии.
     Если стратегия не найдена — вернёт пустой словарь.
     """
+    print(f"{strategy_name}")
     if not strategy_name:
         return
     else:
