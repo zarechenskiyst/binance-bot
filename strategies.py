@@ -4,14 +4,10 @@ from indicators import compute_rsi
 
 # 📌 EMA + RSI
 def ema_rsi_strategy(df, params=None):
-    print(f"11111")
     params = params or {}
-    print(f"2222")
     period = params['ema_period']
-    print(f"aaaa")
     df['EMA20'] = df['close'].ewm(span=period).mean()
     df['RSI'] = compute_rsi(df['close'], period = params['rsi_period'])
-    print(f"bbbbbb")
     latest = df.iloc[-1]
     if latest['close'] > latest['EMA20'] and latest['RSI'] < 70:
         return 'BUY'
