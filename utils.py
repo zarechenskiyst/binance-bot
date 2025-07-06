@@ -19,7 +19,10 @@ def get_strategy_params(strategy_name):
     Возвращает параметры для переданной стратегии.
     Если стратегия не найдена — вернёт пустой словарь.
     """
-    return strategy_params.get(strategy_name, {})
+    if not strategy_params:
+        return
+    else:
+        return strategy_params.get(strategy_name, {})
     
 def can_trade(client: Client, symbol: str, trade_amount: float) -> bool:
     """
