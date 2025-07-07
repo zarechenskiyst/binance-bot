@@ -68,7 +68,7 @@ symbols = [s for s in raw_symbols if s in valid_binance_symbols]
 interval = Client.KLINE_INTERVAL_5MINUTE
 lookback = 100
 
-REPORT_HOUR = 20  # час (0–23) отправки ежедневного отчёта
+REPORT_HOUR = 22  # час (0–23) отправки ежедневного отчёта
 
 def load_trade_history():
     global trade_log_all
@@ -81,7 +81,7 @@ def load_trade_history():
             
         # Приводим timestamp из строк в datetime
         for t in data:
-            t['timestamp'] = datetime.fromisoformat(t['timestamp'])
+            t['timestamp'] = datetime.fromisoformat(t['timestamp']).replace(tzinfo=ZoneInfo("Europe/Kyiv"))
             
         trade_log_all = data
 
