@@ -81,7 +81,8 @@ def load_trade_history():
             
         # Приводим timestamp из строк в datetime
         for t in data:
-            t['timestamp'] = datetime.fromisoformat(t['timestamp']).replace(tzinfo=ZoneInfo("Europe/Kyiv"))
+            if isinstace(t['timestamp'], str):
+                t['timestamp'] = datetime.fromisoformat(t['timestamp']).replace(tzinfo=ZoneInfo("Europe/Kyiv"))
             
         trade_log_all = data
 
