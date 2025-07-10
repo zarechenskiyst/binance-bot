@@ -39,6 +39,7 @@ open_positions = {}  # Пример: {'BTCUSDT': {'side': 'BUY', 'entry_price': 
 START_DEPOSIT = 100.0
 TRADE_PERCENT = 15
 current_deposit = START_DEPOSIT
+MAX_DRAWDOWN = 0.3
 
 # В начале файла
 
@@ -102,7 +103,7 @@ next_daily_report = next_daily_time()
 
 def send_daily_statistics():
     now = datetime.now(ZoneInfo("Europe/Kyiv"))
-    yesterday = now - timedelta(days=1)
+    yesterday = (now - timedelta(days=1)).replace(tzinfo=None)
 
     # Фильтрация последних 24 ч закрытых сделок
     recent = [
