@@ -5,6 +5,7 @@ import time
 import requests
 import os
 import json
+import threading
 from zoneinfo import ZoneInfo
 from utils import can_trade, optimize_parameters, get_strategy_params
 from datetime import datetime, timedelta
@@ -70,6 +71,15 @@ interval = Client.KLINE_INTERVAL_5MINUTE
 lookback = 100
 
 REPORT_HOUR = 21  # час (0–23) отправки ежедневного отчёта
+
+def start_exit_monitor(interval_seconds=60):
+    def monitor():
+        while True:
+            check_exit_conditions()
+            time.sleep(interval_seconds)
+
+    t = threading.Thread(target=monitor, daemon=True)
+    t.start()
 
 def load_trade_history():
     global trade_log_all
@@ -503,6 +513,7 @@ def round_step_size(symbol, qty):
 
 # 🧠 Главный цикл
 while True:
+    strat_exit_monitor(interval_seconds=60)
     if not is_trading_time():
         print("⏳ Вне торгового времени. Пауза.")
         time.sleep(60 * 5)
