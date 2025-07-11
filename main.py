@@ -513,7 +513,7 @@ def round_step_size(symbol, qty):
 
 # 🧠 Главный цикл
 while True:
-    strat_exit_monitor(interval_seconds=60)
+    start_exit_monitor(interval_seconds=60)
     if not is_trading_time():
         print("⏳ Вне торгового времени. Пауза.")
         time.sleep(60 * 5)
