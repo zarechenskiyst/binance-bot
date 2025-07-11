@@ -366,7 +366,8 @@ def check_exit_conditions():
     global current_deposit, consecutive_losses
     symbols_to_close = []
 
-    for symbol, pos in open_positions.items():
+    for symbol in list(open_positions.keys()):
+        pos=open_positions[symbol]
         try:
             current_price = float(client.get_symbol_ticker(symbol=symbol)['price'])
             entry = pos['entry_price']
