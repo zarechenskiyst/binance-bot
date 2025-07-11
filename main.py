@@ -99,11 +99,17 @@ def next_daily_time(now=None):
         target += timedelta(days=1)
     return target
 
-next_daily_report = next_daily_time()
+def next_hourly_time(now=None):
+    now = now or datetime.now(ZoneInfo("Europe/Kyiv"))
+    # Берём сегодня в REPORT_HOUR
+    target = now.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
+    return target
+
+next_daily_report = next_hourly_time()
 
 def send_daily_statistics():
     now = datetime.now(ZoneInfo("Europe/Kyiv"))
-    yesterday = (now - timedelta(days=1)).replace(tzinfo=None)
+    yesterday = (now - timedelta(hours=1)).replace(tzinfo=None)
 
     # Фильтрация последних 24 ч закрытых сделок
     recent = [
@@ -573,7 +579,7 @@ while True:
     now = datetime.now(ZoneInfo("Europe/Kyiv"))
     if now >= next_daily_report:
         send_daily_statistics()
-        next_daily_report = next_daily_time(now)
+        next_daily_report = next_hourly_time(now)
 
     check_exit_conditions()
     
