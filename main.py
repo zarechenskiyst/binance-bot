@@ -31,6 +31,9 @@ TELEGRAM_CHAT_ID = os.getenv("CHAT_ID")
 trade_log = []
 
 
+positions_lock = threading.Lock()
+
+
 # Время следующей отправки отчета
 next_report_time = datetime.now() + timedelta(hours=3)
 
@@ -87,17 +90,6 @@ interval = Client.KLINE_INTERVAL_5MINUTE
 lookback = 100
 
 REPORT_HOUR = 21  # час (0–23) отправки ежедневного отчёта
-
-def start_exit_monitor(interval_seconds=60):
-    def monitor():
-        while True:
-            check_exit_conditions()
-            time.sleep(interval_seconds)
-
-    t = threading.Thread(target=monitor, daemon=True)
-    t.start()
-
-
 
 def save_trade_history():
     with open(HISTORY_FILE, 'w', encoding='utf-8') as f:
@@ -371,8 +363,13 @@ def check_exit_conditions():
     global current_deposit, consecutive_losses
     symbols_to_close = []
 
-    for symbol in list(open_positions.keys()):
-        pos=open_positions[symbol]
+    with positions_lock:
+        symbols = list(open_positions.keys())
+    for symbol in symbols:
+        with positions_lock:
+            pos=open_positions.get(symbol)
+        if not pos:
+            continue
         try:
             current_price = float(client.get_symbol_ticker(symbol=symbol)['price'])
             entry = pos['entry_price']
@@ -465,6 +462,14 @@ def send_telegram_error(message):
         requests.post(url, data=payload)
     except Exception as e:
         print(f"[Telegram Error Fail] {e}")
+
+def start_exit_monitor(interval_seconds=60):
+    def monitor():
+        while True:
+            check_exit_conditions()
+            time.sleep(interval_seconds)
+    t = threading.Thread(target=monitor, daemon=True)
+    t.start()
 
 def send_statistics():
     global trade_log,  current_deposit
