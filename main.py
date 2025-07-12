@@ -29,7 +29,7 @@ TELEGRAM_CHAT_ID = os.getenv("CHAT_ID")
 
 # Статистика торговли
 trade_log = []
-trade_log_all = []
+
 
 # Время следующей отправки отчета
 next_report_time = datetime.now() + timedelta(hours=3)
@@ -43,8 +43,24 @@ current_deposit = START_DEPOSIT
 MAX_DRAWDOWN = 0.3
 
 # В начале файла
+def load_trade_history():
+    global trade_log_all
+    if not trade_log_all:
+        try:
+            with open(HISTORY_FILE, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+        except FileNotFoundError:
+            return
+            
+        # Приводим timestamp из строк в datetime
+        for t in data:
+            if isinstace(t['timestamp'], str):
+                t['timestamp'] = datetime.fromisoformat(t['timestamp']).replace(tzinfo=ZoneInfo("Europe/Kyiv"))
+            
+        trade_log_all = data
 
 trade_log_all = [] # для хранения полной истории
+load_trade_history()
 consecutive_losses = 0
 pause_until = None
 
@@ -81,21 +97,7 @@ def start_exit_monitor(interval_seconds=60):
     t = threading.Thread(target=monitor, daemon=True)
     t.start()
 
-def load_trade_history():
-    global trade_log_all
-    if not trade_log_all:
-        try:
-            with open(HISTORY_FILE, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-        except FileNotFoundError:
-            return
-            
-        # Приводим timestamp из строк в datetime
-        for t in data:
-            if isinstace(t['timestamp'], str):
-                t['timestamp'] = datetime.fromisoformat(t['timestamp']).replace(tzinfo=ZoneInfo("Europe/Kyiv"))
-            
-        trade_log_all = data
+
 
 def save_trade_history():
     with open(HISTORY_FILE, 'w', encoding='utf-8') as f:
