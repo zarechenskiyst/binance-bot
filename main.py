@@ -118,6 +118,9 @@ def next_hourly_time(now=None):
 next_daily_report = next_hourly_time()
 
 def send_daily_statistics():
+    print(f"[DEBUG] Всего записей в trade_log_all: {len(trade_log_all)}")
+    for i, t in enumerate(trade_log_all[:5]):
+        print(f"[DEBUG] Rec#{i} → {t['timestamp']} (tzinfo={t['timestamp'].tzinfo})")
     now = datetime.now(ZoneInfo("Europe/Kyiv"))
     yesterday = (now - timedelta(hours=1)).replace(tzinfo=None)
 
@@ -491,8 +494,9 @@ def send_statistics():
 
     trade_log = [t for t in trade_log if t['result'] is None]
 
-    trade_log_all.extend(closed_trades)
     load_trade_history()
+    trade_log_all.extend(closed_trades)
+   
     save_trade_history()
     optimize_parameters(trade_log_all)
 
