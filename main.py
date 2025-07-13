@@ -57,7 +57,7 @@ def load_trade_history():
             
         # Приводим timestamp из строк в datetime
         for t in data:
-            if isinstace(t['timestamp'], str):
+            if isinstance(t['timestamp'], str):
                 t['timestamp'] = datetime.fromisoformat(t['timestamp']).replace(tzinfo=ZoneInfo("Europe/Kyiv"))
             
         trade_log_all = data
@@ -452,8 +452,6 @@ def check_exit_conditions():
                 print(f"❌ Ошибка при закрытии {symbol}: {e}")
                 send_telegram_error(error_message)
 
-    for s in symbols_to_close:
-        open_positions.pop(s)
 
 def send_telegram_message(message):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
@@ -535,9 +533,11 @@ def round_step_size(symbol, qty):
 
     return round(qty, precision)
 
+
+start_exit_monitor(interval_seconds=60)
+
 # 🧠 Главный цикл
 while True:
-    start_exit_monitor(interval_seconds=60)
     if not is_trading_time():
         print("⏳ Вне торгового времени. Пауза.")
         time.sleep(60 * 5)
