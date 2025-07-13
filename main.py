@@ -35,7 +35,7 @@ positions_lock = threading.Lock()
 
 
 # Время следующей отправки отчета
-next_report_time = datetime.now() + timedelta(hours=3)
+next_report_time = datetime.now() + timedelta(hours=1)
 
 symbol_precision_cache = {}
 
