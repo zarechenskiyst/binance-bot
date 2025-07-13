@@ -608,7 +608,7 @@ while True:
   # Проверка времени отчета
     if datetime.now() >= next_report_time:
         send_statistics()
-        next_report_time = datetime.now() + timedelta(hours=3)
+        next_report_time = datetime.now() + timedelta(hours=1)
 
     # Ежедневный отчёт
     now = datetime.now(ZoneInfo("Europe/Kyiv"))
