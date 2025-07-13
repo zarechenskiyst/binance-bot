@@ -118,11 +118,21 @@ def send_daily_statistics():
     now = datetime.now(ZoneInfo("Europe/Kyiv"))
     yesterday = (now - timedelta(hours=1)).replace(tzinfo=None)
 
+    # ==== DEBUG ====
+    print(f"[DEBUG] Now: {now!r}")
+    print(f"[DEBUG] Yesterday cutoff: {yesterday!r}")
+    print(f"[DEBUG] Total in trade_log_all: {len(trade_log_all)}")
+    for i, t in enumerate(trade_log_all[-5:], 1):
+        print(f"[DEBUG]   Rec {-i}: ts={t['timestamp']!r} tzinfo={t['timestamp'].tzinfo} result={t['result']}")
+    # ================
+
     # Фильтрация последних 24 ч закрытых сделок
     recent = [
         t for t in trade_log_all
         if t['result'] in ('win','loss') and t['timestamp'] >= yesterday
     ]
+
+    print(f"[DEBUG] After filter recent count: {len(recent)}")
 
     total = len(recent)
     wins  = sum(1 for t in recent if t['result']=='win')
