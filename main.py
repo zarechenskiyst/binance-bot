@@ -428,6 +428,8 @@ def check_exit_conditions():
                 
 
                 symbols_to_close.append(symbol)
+                with positions_lock:
+                    open_positions.pop(symbol, None)
 
                 
 
