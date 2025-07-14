@@ -427,6 +427,12 @@ def check_exit_conditions():
                         current_deposit += profit_usdt  # не забываем обновить текущий депозит
                         result = t['result']
                         print(f"📤 Закрыта позиция по {symbol} — {result.upper()} ({change:.2f}%)")
+
+                        trade_log_all.append(t)
+   
+                        save_trade_history(trade_log_all)
+                        optimize_parameters(trade_log_all)
+                        
                         if t['result'] == 'loss':
                             consecutive_losses += 1
                         else:
@@ -514,10 +520,10 @@ def send_statistics():
     trade_log = [t for t in trade_log if t['result'] is None]
 
     load_trade_history()
-    trade_log_all.extend(closed_trades)
+    #trade_log_all.extend(closed_trades)
    
-    save_trade_history()
-    optimize_parameters(trade_log_all)
+    #save_trade_history()
+    #optimize_parameters(trade_log_all)
 
 def round_step_size(symbol, qty):
     if symbol in symbol_precision_cache:
