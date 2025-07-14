@@ -126,8 +126,9 @@ def send_daily_statistics():
     for i, t in enumerate(trade_log_all[-5:], 1):
         print(f"[DEBUG]   Rec {-i}: ts={t['timestamp']!r} tzinfo={t['timestamp'].tzinfo} result={t['result']}")
     # ================
-
+    
     # Фильтрация последних 24 ч закрытых сделок
+    print(f"[DEBUG] one_hour_ago cutoff: {one_hour_ago!r}")
     recent = [
         t for t in trade_log_all
         if t['result'] in ('win','loss') and t['timestamp'] >= one_hour_ago.replace(tzinfo=None) 
