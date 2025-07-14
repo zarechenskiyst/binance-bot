@@ -430,7 +430,7 @@ def check_exit_conditions():
 
                         trade_log_all.append(t)
    
-                        save_trade_history(trade_log_all)
+                        save_trade_history()
                         optimize_parameters(trade_log_all)
                         
                         if t['result'] == 'loss':
