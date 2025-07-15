@@ -41,7 +41,7 @@ symbol_precision_cache = {}
 
 open_positions = {}  # Пример: {'BTCUSDT': {'side': 'BUY', 'entry_price': 30000.0, 'qty': 0.00033}}
 START_DEPOSIT = 100.0
-TRADE_PERCENT = 15
+TRADE_PERCENT = 5
 current_deposit = START_DEPOSIT
 MAX_DRAWDOWN = 0.3
 
