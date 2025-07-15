@@ -80,8 +80,7 @@ client.API_URL = 'https://testnet.binance.vision/api'
 
 # 🔄 Торгуемые пары
 #['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'ADAUSDT', 'MATICUSDT', 'DOTUSDT', 'LINKUSDT', 'AVAXUSDT', 'XRPUSDT', 'PEPEUSDT']
-raw_symbols = 
-[
+raw_symbols = [
   "DOGEUSDT",
   "SHIBUSDT",
   "PEPEUSDT",
