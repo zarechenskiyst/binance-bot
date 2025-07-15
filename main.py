@@ -79,7 +79,29 @@ client = Client(API_KEY, API_SECRET)
 client.API_URL = 'https://testnet.binance.vision/api'
 
 # 🔄 Торгуемые пары
-raw_symbols = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'ADAUSDT', 'MATICUSDT', 'DOTUSDT', 'LINKUSDT', 'AVAXUSDT', 'XRPUSDT', 'PEPEUSDT']
+raw_symbols = #['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'ADAUSDT', 'MATICUSDT', 'DOTUSDT', 'LINKUSDT', 'AVAXUSDT', 'XRPUSDT', 'PEPEUSDT']
+[
+  "DOGEUSDT",
+  "SHIBUSDT",
+  "PEPEUSDT",
+  "1000SATSUSDT",
+  "VTHOUSDT",
+  "TRXUSDT",
+  "XRPUSDT",
+  "LUNCUSDT",
+  "FLOKIUSDT",
+  "BTTUSDT",
+  "JASMYUSDT",
+  "HOTUSDT",
+  "ALGOUSDT",
+  "XLMUSDT",
+  "ACHUSDT",
+  "REEFUSDT",
+  "CTSIUSDT",
+  "WOOUSDT",
+  "ONEUSDT",
+  "CKBUSDT"
+]
 
 # Получаем список всех доступных символов на Binance
 exchange_info = client.get_exchange_info()
