@@ -128,7 +128,7 @@ def next_daily_time(now=None):
 def next_hourly_time(now=None):
     now = now or datetime.now(ZoneInfo("Europe/Kyiv"))
     # Берём сегодня в REPORT_HOUR
-    target = now.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
+    target = now.replace(minute=0, second=0, microsecond=0) + timedelta(hours=3)
     return target
 
 next_daily_report = next_hourly_time()
@@ -636,7 +636,7 @@ while True:
   # Проверка времени отчета
     if datetime.now() >= next_report_time:
         send_statistics()
-        next_report_time = datetime.now() + timedelta(hours=1)
+        next_report_time = datetime.now() + timedelta(hours=3)
 
     # Ежедневный отчёт
     now = datetime.now(ZoneInfo("Europe/Kyiv"))
