@@ -197,36 +197,34 @@ def send_daily_statistics():
 
     symbol_section = "*По активам:*\n" + "\n".join(symbol_lines) + "\n\n"
 
-    # Win-rate по стратегиям
-    strat_section = ""
-    strat_recs = []
-    if any('strategy' in t for t in recent):
-        by_strat = {}
-        for t in recent:
-            for strat in t['strategy'].split(','):
-                by_strat.setdefault(strat, []).append(t['result'])
+    # --- новая секция: статистика по стратегиям ---
+    by_strat = {}
+    for t in recent:
+        # t['strategy'] — строка вида "ema_rsi,bollinger_rsi"
+        for strat in t.get('strategy', '').split(','):
+            strat = strat.strip()
+            if not strat: 
+                continue
+            by_strat.setdefault(strat, []).append(t['result'])
 
-        strat_lines = []
-        for strat, res in by_strat.items():
-            tot = len(res)
-            w   = res.count('win')
-            wr_st = w/tot*100
-            strat_lines.append(f"{strat}: {w}/{tot} ({wr_st:.1f}%)")
-            # рекомендации по стратегиям
-            if wr_st < 50:
-                strat_recs.append(f"• {strat}: низкий win rate ({wr_st:.1f}%) – увеличить требование подтверждения или отключить.")
-            elif wr_st < 70:
-                strat_recs.append(f"• {strat}: средний win rate ({wr_st:.1f}%) – проверьте параметры (EMA/RSI).")
+    strat_lines = []
+    for strat, res in by_strat.items():
+        w   = res.count('win')
+        tot = len(res)
+        wr  = w/tot*100
+        strat_lines.append(f"{strat}: {w}/{tot} ({wr:.1f}%)")
 
-        strat_section = "*По стратегиям:*\n" + "\n".join(strat_lines) + "\n\n"
+    # --- формируем и посылаем итоговое сообщение ---
+    strat_section += "\n".join(strat_lines)
+
 
     # Собираем итоговое сообщение
     message = header + symbol_section + strat_section
 
     # Если есть рекомендации — добавляем
-    if recommendations or strat_recs:
-        message += "💡 *Рекомендации:*\n"
-        message += "\n".join(recommendations + strat_recs)
+    if strat_section:
+        message += "*По стратегиям:*\n"
+        message += "\n".join(strat_section)
 
     send_telegram_message(message)
 
