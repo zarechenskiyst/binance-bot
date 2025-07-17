@@ -215,7 +215,7 @@ def send_daily_statistics():
         strat_lines.append(f"{strat}: {w}/{tot} ({wr:.1f}%)")
 
     # --- формируем и посылаем итоговое сообщение ---
-    strat_section += "\n".join(strat_lines)
+    strat_section = "*По стратегиям:*\n" + "\n".join(strat_lines)
 
 
     # Собираем итоговое сообщение
