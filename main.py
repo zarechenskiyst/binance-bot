@@ -215,16 +215,16 @@ def send_daily_statistics():
         strat_lines.append(f"{strat}: {w}/{tot} ({wr:.1f}%)")
 
     # --- формируем и посылаем итоговое сообщение ---
-    strat_section = "*По стратегиям:*\n" + "\n".join(strat_lines)
+    #strat_section = "*По стратегиям:*\n" + "\n".join(strat_lines)
 
 
     # Собираем итоговое сообщение
-    message = header + symbol_section + strat_section
+    message = header + symbol_section #+ strat_section
 
     # Если есть рекомендации — добавляем
-    if strat_section:
+    if strat_lines:
         message += "*По стратегиям:*\n"
-        message += "\n".join(strat_section)
+        message += "\n".join(strat_lines)
 
     send_telegram_message(message)
 
