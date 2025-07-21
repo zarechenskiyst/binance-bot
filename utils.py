@@ -58,17 +58,17 @@ def optimize_parameters(trade_history, window=50, min_winrate=0.5):
     wins = sum(1 for t in recent if t['result']=='win')
     wr = wins / window
     
-    print(f"🔧 Оптимизация: {strategy_params}")
     # Если падение winrate — меняем ema_period +\- 2
     if wr < min_winrate:
         for strategy_name, params in strategy_params.items():
+            print(f"🔧 Оптимизация: {params}")
             # Пример: если сейчас 20, то пробуем 22, иначе 18
-            if 'ema_period' in strategy_params:
-                strategy_params['ema_period'] += 2
-                if strategy_params['ema_period'] > 50:
-                    strategy_params['ema_period'] = 20  # возвращаем к базовому
+            if 'ema_period' in params:
+                params['ema_period'] += 2
+                if params['ema_period'] > 50:
+                    params['ema_period'] = 20  # возвращаем к базовому
             # Аналогично можно менять RSI
-            if 'rsi_period' in strategy_params:
-                strategy_params['rsi_period'] = max(8, strategy_params['rsi_period'] - 2)
+            if 'rsi_period' in params:
+                params['rsi_period'] = max(8, params['rsi_period'] - 2)
             print(f"🔧 Оптимизация: winrate={wr:.2f}, новые параметры: EMA={strategy_params['ema_period']}, RSI={strategy_params['rsi_period']}")
 
