@@ -208,6 +208,7 @@ def send_daily_statistics():
             by_strat.setdefault(strat, []).append(t['result'])
 
     strat_lines = []
+    print(f"🔧 1111111111: {by_strat.items()}")
     for strat, res in by_strat.items():
         w   = res.count('win')
         tot = len(res)
