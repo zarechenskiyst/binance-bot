@@ -64,6 +64,7 @@ def optimize_parameters(trade_history, window=50, min_winrate=0.5):
             print(f"🔧 Оптимизация: {params}")
             # Пример: если сейчас 20, то пробуем 22, иначе 18
             if 'ema_period' in params:
+                print(f"🔧 Оптимизация: {params['ema_period']}")
                 params['ema_period'] += 2
                 if params['ema_period'] > 50:
                     params['ema_period'] = 20  # возвращаем к базовому
