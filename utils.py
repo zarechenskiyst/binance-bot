@@ -65,9 +65,17 @@ def optimize_parameters(trade_history, window=50, min_winrate=0.5):
             # Пример: если сейчас 20, то пробуем 22, иначе 18
             if 'ema_period' in params:
                 print(f"🔧 Оптимизация: {params['ema_period']}")
-                params['ema_period'] += 2
-                if params['ema_period'] > 50:
-                    params['ema_period'] = 20  # возвращаем к базовому
+                old = params['ema_period']
+                # защита от не-числовых случаев
+                if not isinstance(old, (int, float)):
+                    print(f"⚠️ У {name} ema_period={old!r} не число, пропускаем")
+                    continue
+
+                new = old + 2
+                if new > 50:
+                    new = 20
+                params['ema_period'] = new
+                
             # Аналогично можно менять RSI
             if 'rsi_period' in params:
                 params['rsi_period'] = max(8, params['rsi_period'] - 2)
