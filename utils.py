@@ -1,3 +1,4 @@
+import traceback
 from binance.client import Client
 
 # Кэш для minNotional
@@ -84,4 +85,5 @@ def optimize_parameters(trade_history, window=50, min_winrate=0.5):
     except Exception as e:
         error_message = f"❌ Ошибка: {e}"
         print(f"{error_message}")
+        traceback.print_exc()
 
