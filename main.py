@@ -200,7 +200,7 @@ def send_daily_statistics():
     # --- новая секция: статистика по стратегиям ---
     by_strat = {}
     for t in recent:
-        print(f"🔧 3333333333: {t['strategy']}")
+        
         # t['strategy'] — строка вида "ema_rsi,bollinger_rsi"
         for strat in t.get('strategy', '').split(','):
             strat = strat.strip()
