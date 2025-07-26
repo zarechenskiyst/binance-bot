@@ -86,4 +86,5 @@ def optimize_parameters(trade_history, window=50, min_winrate=0.5):
         error_message = f"❌ Ошибка: {e}"
         print(f"{error_message}")
         traceback.print_exc()
+        
 
