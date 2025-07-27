@@ -58,27 +58,32 @@ def optimize_parameters(trade_history, window=50, min_winrate=0.5):
 
     wins = sum(1 for t in recent if t['result']=='win')
     wr = wins / window
+    try:
     # Если падение winrate — меняем ema_period +\- 2
-    if wr < min_winrate:
-        for strategy_name, params in strategy_params.items():
+        if wr < min_winrate:
+            for strategy_name, params in strategy_params.items():
             # Пример: если сейчас 20, то пробуем 22, иначе 18
-            if 'ema_period' in params:
-                print(f"🔧 Оптимизация: {params['ema_period']}")
-                old = params['ema_period']
+                if 'ema_period' in params:
+                    print(f"🔧 Оптимизация: {params['ema_period']}")
+                    old = params['ema_period']
                 # защита от не-числовых случаев
-                if not isinstance(old, (int, float)):
-                    print(f"⚠️ У {name} ema_period={old!r} не число, пропускаем")
-                    continue
+                    if not isinstance(old, (int, float)):
+                        print(f"⚠️ У {name} ema_period={old!r} не число, пропускаем")
+                        continue
 
-                new = old + 2
-                if new > 50:
-                    new = 20
-                params['ema_period'] = new
+                    new = old + 2
+                    if new > 50:
+                        new = 20
+                    params['ema_period'] = new
                 
             # Аналогично можно менять RSI
-            if 'rsi_period' in params:
-                params['rsi_period'] = max(8, params['rsi_period'] - 2)
-            print(f"🔧 Оптимизация: winrate={wr:.2f}, новые параметры: EMA={params['ema_period']}, RSI={params['rsi_period']}")
-
+                if 'rsi_period' in params:
+                    params['rsi_period'] = max(8, params['rsi_period'] - 2)
+                print(f"🔧 Оптимизация: winrate={wr:.2f}, новые параметры: EMA={params['ema_period']}, RSI={params['rsi_period']}")
+                
+    except Exception as e:
+        error_message = f"❌ Ошибка: {e}"
+        print(f"{error_message}")
+        traceback.print_exc()
         
 
