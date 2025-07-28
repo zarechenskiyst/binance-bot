@@ -75,13 +75,12 @@ def optimize_parameters(trade_history, window=50, min_winrate=0.5):
                     if new > 50:
                         new = 20
                     params['ema_period'] = new
+                    print(f"🔧 Оптимизация: winrate={wr:.2f}, новые параметры: EMA={params['ema_period']}")
                 
             # Аналогично можно менять RSI
                 if 'rsi_period' in params:
                     params['rsi_period'] = max(8, params['rsi_period'] - 2)
                     print(f"🔧 Оптимизация: winrate={wr:.2f}, новые параметры: RSI={params['rsi_period']}"})
-                if 'ema_period' in params:
-                    print(f"🔧 Оптимизация: winrate={wr:.2f}, новые параметры: EMA={params['ema_period']})
                 
     except Exception as e:
         error_message = f"❌ Ошибка: {e}"
